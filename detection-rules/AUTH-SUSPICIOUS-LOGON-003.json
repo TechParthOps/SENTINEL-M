@@ -1,0 +1,21 @@
+{
+  "id": "AUTH-SUSPICIOUS-LOGON-003",
+  "title": "Authentication attempt for a non-existent account (user enumeration)",
+  "type": "pattern",
+  "class": "authentication",
+  "patterns": [
+    {"field": "message", "regex": "(?i)(no such user|invalid user|unknown user|user not found|failed for illegal user|nonexistent account)"}
+  ],
+  "entity_field": "src_ip",
+  "entity_type": "ip",
+  "signature_field": "message",
+  "cooldown_seconds": 1800,
+  "severity_id": 2,
+  "category": "discovery",
+  "attack_ids": ["T1087.001"],
+  "attack_tactics": ["Discovery"],
+  "message_template": "Account enumeration attempt from {entity}: {match}",
+  "status": "stable",
+  "source": "SENTINEL-M deterministic rule (Phase 1)",
+  "notes": "Low severity by design — enumeration alone is weak evidence; correlation escalates when chained with brute force."
+}

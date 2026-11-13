@@ -1,0 +1,15 @@
+{
+  "id": "AUTH-BRUTEFORCE-001",
+  "name": "Authentication brute force",
+  "type": "threshold",
+  "filter": { "class_name": "authentication", "outcome": "failure" },
+  "group_by": "src_ip",
+  "window_seconds": 300,
+  "threshold": 10,
+  "condition": "count",
+  "severity_id": 4,
+  "confidence": 0.9,
+  "attack_ids": ["T1110"],
+  "description": "Ten or more failed authentication attempts from a single source IP within 5 minutes, consistent with password guessing or brute-force tooling.",
+  "recommended_action": "Review source IP reputation, verify whether any attempt succeeded, consider blocking the source at the perimeter, and reset credentials for targeted accounts if success is confirmed."
+}

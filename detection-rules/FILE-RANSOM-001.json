@@ -1,0 +1,20 @@
+{
+  "id": "FILE-RANSOM-001",
+  "title": "Ransomware-like file modification burst on a single host",
+  "type": "threshold",
+  "class": "file_activity",
+  "where": {"file_action": "modify"},
+  "group_by": "host",
+  "entity_type": "host",
+  "window_seconds": 300,
+  "min_count": 25,
+  "cooldown_seconds": 600,
+  "severity_id": 5,
+  "category": "impact",
+  "attack_ids": ["T1486"],
+  "attack_tactics": ["Impact"],
+  "message_template": "{count} file modifications on {entity} within {window_seconds}s (ransomware-like burst)",
+  "status": "stable",
+  "source": "SENTINEL-M deterministic rule (Phase 1)",
+  "notes": "Velocity indicator, not a verdict. Phase 2 correlates with extension-change and shadow-copy deletion events."
+}

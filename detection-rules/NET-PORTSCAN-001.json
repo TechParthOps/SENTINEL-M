@@ -1,0 +1,20 @@
+{
+  "id": "NET-PORTSCAN-001",
+  "title": "Port / service scan: one source probing many distinct destination ports",
+  "type": "threshold",
+  "class": "network_activity",
+  "group_by": "src_ip",
+  "entity_type": "ip",
+  "window_seconds": 600,
+  "min_count": 15,
+  "distinct_field": "dst_port",
+  "cooldown_seconds": 600,
+  "severity_id": 3,
+  "category": "network_recon",
+  "attack_ids": ["T1046"],
+  "attack_tactics": ["Discovery"],
+  "message_template": "Port scan from {entity}: {distinct} distinct destination ports within {window_seconds}s",
+  "status": "stable",
+  "source": "SENTINEL-M deterministic rule (Phase 1)",
+  "notes": "distinct ports required so that many connections to one service do not false-positive."
+}

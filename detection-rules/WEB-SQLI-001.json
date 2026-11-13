@@ -1,0 +1,21 @@
+{
+  "id": "WEB-SQLI-001",
+  "title": "SQL injection indicators in request URI/query",
+  "type": "pattern",
+  "class": "web_resource_access_activity",
+  "patterns": [
+    {"field": "http_url", "regex": "(?i)(union[\\s+\\S]{0,20}select|'\\s*or\\s*'|\\bor\\b\\s+1\\s*=\\s*1|sleep\\s*\\(|benchmark\\s*\\(|information_schema|xp_cmdshell|;\\s*drop\\s+table)"}
+  ],
+  "entity_field": "src_ip",
+  "entity_type": "ip",
+  "signature_field": "http_url",
+  "cooldown_seconds": 1800,
+  "severity_id": 4,
+  "category": "web_attack",
+  "attack_ids": ["T1190"],
+  "attack_tactics": ["Initial Access"],
+  "message_template": "SQL injection pattern from {entity}: {match}",
+  "status": "stable",
+  "source": "SENTINEL-M deterministic rule (Phase 1)",
+  "notes": "Log-based indicator of an *attempt* only — it does not prove exploitation. Pair with WAF/DB telemetry in Phase 2."
+}

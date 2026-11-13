@@ -1,0 +1,16 @@
+{
+  "id": "NET-PORTSCAN-001",
+  "name": "Network port scan",
+  "type": "threshold",
+  "filter": { "class_name": "network_activity" },
+  "group_by": "src_ip",
+  "window_seconds": 120,
+  "threshold": 20,
+  "condition": "distinct",
+  "distinct_field": "dst_port",
+  "severity_id": 3,
+  "confidence": 0.9,
+  "attack_ids": ["T1046"],
+  "description": "A single source contacted 20 or more distinct destination ports within 2 minutes, consistent with service discovery / port scanning.",
+  "recommended_action": "Identify the scanning host, confirm authorization status, review what services were exposed to it, and consider blocking at the firewall."
+}

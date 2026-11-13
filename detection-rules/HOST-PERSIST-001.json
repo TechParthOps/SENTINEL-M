@@ -1,0 +1,21 @@
+{
+  "id": "HOST-PERSIST-001",
+  "title": "Scheduled task creation (persistence mechanism)",
+  "type": "pattern",
+  "class": "process_activity",
+  "patterns": [
+    {"field": "command_line", "regex": "(?i)schtasks.{0,80}/create"}
+  ],
+  "entity_field": "host",
+  "entity_type": "host",
+  "signature_field": "command_line",
+  "cooldown_seconds": 1800,
+  "severity_id": 4,
+  "category": "persistence",
+  "attack_ids": ["T1053.005"],
+  "attack_tactics": ["Persistence"],
+  "message_template": "Scheduled task created on {entity}: {match}",
+  "status": "stable",
+  "source": "SENTINEL-M deterministic rule (Phase 1)",
+  "notes": "Task creation is common in admin scripts — severity escalates only when correlated with other techniques on the same host."
+}

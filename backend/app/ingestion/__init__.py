@@ -1,0 +1,1 @@
+"""Ingestion: source adapters -> canonical normalized events (ADR-004)."""

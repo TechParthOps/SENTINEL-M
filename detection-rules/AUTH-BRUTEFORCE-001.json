@@ -1,0 +1,20 @@
+{
+  "id": "AUTH-BRUTEFORCE-001",
+  "title": "Repeated authentication failures from a single source (brute force)",
+  "type": "threshold",
+  "class": "authentication",
+  "where": {"outcome": "failure"},
+  "group_by": "src_ip",
+  "entity_type": "ip",
+  "window_seconds": 600,
+  "min_count": 10,
+  "cooldown_seconds": 900,
+  "severity_id": 4,
+  "category": "credential_attack",
+  "attack_ids": ["T1110"],
+  "attack_tactics": ["Credential Access"],
+  "message_template": "{count} failed authentication attempts from {entity} within {window_seconds}s",
+  "status": "stable",
+  "source": "SENTINEL-M deterministic rule (Phase 1)",
+  "notes": "Fires once per cooldown window per source IP; cooldown prevents alert storms."
+}

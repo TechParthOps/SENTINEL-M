@@ -1,0 +1,21 @@
+{
+  "id": "NET-DNSTUNNEL-001",
+  "title": "DNS tunneling indicator: abnormal subdomain label (long/high-entropy label)",
+  "type": "pattern",
+  "class": "dns_activity",
+  "patterns": [
+    {"field": "dns_query", "regex": "^[a-z0-9]{20,}\\."}
+  ],
+  "entity_field": "host",
+  "entity_type": "host",
+  "signature_field": "dns_query",
+  "cooldown_seconds": 3600,
+  "severity_id": 3,
+  "category": "command_and_control",
+  "attack_ids": ["T1071.004"],
+  "attack_tactics": ["Command and Control"],
+  "message_template": "Possible DNS tunneling from {entity}: {match}",
+  "status": "stable",
+  "source": "SENTINEL-M deterministic rule (Phase 1)",
+  "notes": "Label-length heuristic only. Phase 2 adds entropy + query-rate + NXDOMAIN ratio analysis and CDN/whitelist exclusions."
+}

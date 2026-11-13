@@ -1,0 +1,14 @@
+{
+  "id": "NET-DNSTUNNEL-001",
+  "name": "DNS tunneling indicator",
+  "type": "pattern",
+  "filter": { "class_name": "dns_activity" },
+  "field": "dns_query",
+  "regex": "^[A-Za-z2-7]{30,}\\.|(?:[A-Za-z2-7]{12,}\\.){3,}",
+  "entity_field": "host",
+  "severity_id": 3,
+  "confidence": 0.6,
+  "attack_ids": ["T1071.004"],
+  "description": "DNS query with unusually long or deeply nested base32/base64-style labels — a common encoding pattern for DNS tunneling. Heuristic: legitimate long CDN records can trigger false positives.",
+  "recommended_action": "Review the frequency of queries to the domain, decode candidate labels, check the registrant and reputation of the domain, and inspect the querying host for the responsible process."
+}

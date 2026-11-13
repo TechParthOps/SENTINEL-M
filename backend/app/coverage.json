@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "structure": "Capability coverage. Structured twin of research/THREAT_COVERAGE_MATRIX.md — update both together.",
+  "phases": [
+    {
+      "phase": 0,
+      "status": "implemented",
+      "title": "Research and architecture",
+      "capabilities": [
+        {"name": "Standards research (ATT&CK v20, OCSF 1.5, OWASP LLM, NIST)", "status": "implemented"},
+        {"name": "Architecture decisions (ADRs)", "status": "implemented"},
+        {"name": "Threat coverage matrix", "status": "implemented"}
+      ]
+    },
+    {
+      "phase": 1,
+      "status": "implemented",
+      "title": "Core platform",
+      "capabilities": [
+        {"name": "Authentication (JWT + PBKDF2) and RBAC", "status": "implemented"},
+        {"name": "SQLite database with WAL", "status": "implemented"},
+        {"name": "Asset inventory (manual + auto-registration from telemetry)", "status": "implemented"},
+        {"name": "Authenticated event ingestion gateway", "status": "implemented"},
+        {"name": "OCSF-aligned event normalization", "status": "implemented"},
+        {"name": "Deterministic detection rule engine (9 rules)", "status": "implemented"},
+        {"name": "Alert management with analyst workflow", "status": "implemented"},
+        {"name": "Incident correlation (entity grouping + attack-chain escalation)", "status": "implemented"},
+        {"name": "WebSocket live streaming", "status": "implemented"},
+        {"name": "Hash-chained audit log", "status": "implemented"},
+        {"name": "System health registry", "status": "implemented"}
+      ]
+    },
+    {
+      "phase": 2,
+      "status": "planned",
+      "title": "Traditional cyber defense",
+      "capabilities": [
+        {"name": "Network security engine (Zeek/Suricica adapters, beaconing, C2)", "status": "planned"},
+        {"name": "Endpoint security engine (Sysmon/osquery/Wazuh adapters)", "status": "planned"},
+        {"name": "Identity threat detection", "status": "planned"},
+        {"name": "Web/API security engine", "status": "planned"},
+        {"name": "Malware static analysis + YARA + sandbox adapter", "status": "planned"},
+        {"name": "Threat intelligence engine (MISP/OpenCTI/TAXII adapters)", "status": "planned"}
+      ]
+    },
+    {
+      "phase": 3,
+      "status": "planned",
+      "title": "AI and multimodal defense",
+      "capabilities": [
+        {"name": "Prompt-injection / LLM security engine", "status": "planned"},
+        {"name": "Phishing and document analysis", "status": "planned"},
+        {"name": "QR code security", "status": "planned"},
+        {"name": "Image forensics", "status": "planned"},
+        {"name": "Audio forensics (synthetic speech indicators)", "status": "planned"},
+        {"name": "Video / deepfake analysis", "status": "planned"}
+      ]
+    },
+    {
+      "phase": 4,
+      "status": "planned",
+      "title": "Autonomous investigation",
+      "capabilities": [
+        {"name": "Agent orchestrator and specialist agents", "status": "planned"},
+        {"name": "Evidence collection with chain of custody", "status": "planned"},
+        {"name": "Attack timelines and threat hunting queries", "status": "planned"}
+      ]
+    },
+    {
+      "phase": 5,
+      "status": "planned",
+      "title": "Response and deception",
+      "capabilities": [
+        {"name": "Policy-authorized response engine with approvals", "status": "planned"},
+        {"name": "Action verification and rollback", "status": "planned"},
+        {"name": "Isolated deception and honeypot subsystem", "status": "planned"}
+      ]
+    },
+    {
+      "phase": 6,
+      "status": "planned",
+      "title": "3D virtual security operations office",
+      "capabilities": [
+        {"name": "Interactive 3D operations environment (R3F)", "status": "planned"},
+        {"name": "Digital twin with visualization modes", "status": "planned"},
+        {"name": "Live agent avatars and attack-path animation", "status": "planned"},
+        {"name": "Incident historical replay", "status": "planned"}
+      ]
+    },
+    {
+      "phase": 7,
+      "status": "planned",
+      "title": "Enterprise readiness",
+      "capabilities": [
+        {"name": "Guided installer and update mechanism", "status": "planned"},
+        {"name": "Enterprise hardening (MFA, backup, SBOM)", "status": "planned"},
+        {"name": "Performance and regression testing", "status": "planned"}
+      ]
+    }
+  ]
+}

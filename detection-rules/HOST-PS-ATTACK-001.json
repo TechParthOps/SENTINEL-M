@@ -1,0 +1,22 @@
+{
+  "id": "HOST-PS-ATTACK-001",
+  "title": "Suspicious PowerShell execution (encoded command / download cradle / bypass)",
+  "type": "pattern",
+  "class": "process_activity",
+  "patterns": [
+    {"field": "process_name", "regex": "(?i)powershell"},
+    {"field": "command_line", "regex": "(?i)(-enc\\b|-encodedcommand|-downloadstring|-noprof|-nop\\b|-w\\s+hidden|bypass|\\biex\\b|invoke-expression|frombase64string)"}
+  ],
+  "entity_field": "host",
+  "entity_type": "host",
+  "signature_field": "command_line",
+  "cooldown_seconds": 1800,
+  "severity_id": 4,
+  "category": "execution",
+  "attack_ids": ["T1059.001"],
+  "attack_tactics": ["Execution"],
+  "message_template": "Suspicious PowerShell on {entity}: {match}",
+  "status": "stable",
+  "source": "SENTINEL-M deterministic rule (Phase 1)",
+  "notes": "Both patterns must match: a powershell binary AND an attack-pattern argument. Identical command lines are deduplicated for the cooldown period."
+}

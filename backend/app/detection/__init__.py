@@ -1,0 +1,1 @@
+"""Detection engine (ADR-005) — deterministic, explainable rules. No LLM in the hot path."""

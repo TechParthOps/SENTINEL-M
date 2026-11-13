@@ -1,0 +1,100 @@
+{
+  "meta": {
+    "description": "SENTINEL-M detection coverage — structured twin of research/THREAT_COVERAGE_MATRIX.md. Rendered by the in-product Capabilities page (ADR-008/ADR-010).",
+    "source_version": "2026-11-12",
+    "attack_version": "v20 (Oct 2026; 15 Enterprise tactics incl. Defense Impairment TA0112)"
+  },
+  "status_legend": {
+    "implemented": "Implemented and tested",
+    "partial": "Implemented but not fully validated",
+    "planned": "Planned (roadmap)",
+    "blocked": "Blocked by hardware or external integration",
+    "unsupported": "Not supported"
+  },
+  "phases": [
+    {
+      "phase": 1,
+      "name": "Core Platform",
+      "status": "implemented",
+      "capabilities": [
+        { "threat": "Authentication brute force", "engine": "Detection", "source": "Auth telemetry (agent/syslog)", "attack_ids": ["T1110"], "status": "implemented" },
+        { "threat": "Password spraying", "engine": "Detection", "source": "Auth telemetry", "attack_ids": ["T1110.003"], "status": "implemented" },
+        { "threat": "User enumeration attempts", "engine": "Detection", "source": "Auth telemetry", "attack_ids": ["T1110"], "status": "implemented" },
+        { "threat": "Network port scanning", "engine": "Detection", "source": "Connection telemetry", "attack_ids": ["T1046"], "status": "implemented" },
+        { "threat": "Suspicious PowerShell execution", "engine": "Detection", "source": "Process telemetry", "attack_ids": ["T1059.001"], "status": "implemented" },
+        { "threat": "Scheduled-task persistence", "engine": "Detection", "source": "Process telemetry", "attack_ids": ["T1053.005"], "status": "implemented" },
+        { "threat": "DNS tunneling indicators", "engine": "Detection", "source": "DNS telemetry", "attack_ids": ["T1071.004"], "status": "implemented" },
+        { "threat": "Ransomware-like file activity", "engine": "Detection", "source": "File telemetry", "attack_ids": ["T1486"], "status": "implemented" },
+        { "threat": "SQL injection indicators", "engine": "Detection", "source": "HTTP telemetry", "attack_ids": ["T1190"], "status": "implemented" },
+        { "threat": "Alert correlation into incidents", "engine": "Correlation", "source": "Alerts", "attack_ids": [], "status": "implemented" },
+        { "threat": "Multi-technique attack-chain escalation", "engine": "Correlation", "source": "Alerts", "attack_ids": [], "status": "implemented" }
+      ]
+    },
+    {
+      "phase": 2,
+      "name": "Traditional Cyber Defense Expansion",
+      "status": "planned",
+      "capabilities": [
+        { "threat": "C2 beaconing (periodic + jitter)", "engine": "Network", "source": "Zeek/Suricata/flows", "attack_ids": ["T1071"], "status": "planned" },
+        { "threat": "Lateral movement (SMB/RDP/WMI)", "engine": "Network+Endpoint", "source": "Zeek, Sysmon", "attack_ids": ["T1021"], "status": "planned" },
+        { "threat": "Data exfiltration volume anomalies", "engine": "Network", "source": "Flows", "attack_ids": ["T1041"], "status": "planned" },
+        { "threat": "Process injection indicators", "engine": "Endpoint", "source": "Sysmon", "attack_ids": ["T1055"], "status": "planned" },
+        { "threat": "Run-key / registry persistence", "engine": "Endpoint", "source": "Sysmon", "attack_ids": ["T1547.001"], "status": "planned" },
+        { "threat": "Credential dumping indicators", "engine": "Endpoint", "source": "Sysmon/osquery", "attack_ids": ["T1003"], "status": "planned" },
+        { "threat": "Malware static analysis (hash/YARA/entropy)", "engine": "Malware", "source": "File pipeline", "attack_ids": [], "status": "planned" },
+        { "threat": "Threat intel IOC correlation", "engine": "Intelligence", "source": "MISP/TAXII", "attack_ids": [], "status": "planned" },
+        { "threat": "Impossible travel / MFA fatigue", "engine": "Identity", "source": "IdP logs", "attack_ids": ["T1078"], "status": "planned" },
+        { "threat": "XSS / SSRF / path traversal / credential stuffing", "engine": "App/API", "source": "Proxy/WAF logs", "attack_ids": ["T1190"], "status": "planned" }
+      ]
+    },
+    {
+      "phase": 3,
+      "name": "AI & Multimodal Security",
+      "status": "planned",
+      "capabilities": [
+        { "threat": "Direct / indirect prompt injection", "engine": "AI Security", "source": "LLM app telemetry", "attack_ids": ["LLM01:2025", "ATLAS"], "status": "planned" },
+        { "threat": "Jailbreak / system-prompt extraction", "engine": "AI Security", "source": "LLM app telemetry", "attack_ids": ["LLM07:2025"], "status": "planned" },
+        { "threat": "RAG poisoning indicators", "engine": "AI Security", "source": "RAG pipeline telemetry", "attack_ids": ["LLM08:2025"], "status": "planned" },
+        { "threat": "Agent tool abuse / excessive agency", "engine": "Agent Security", "source": "Agent audit trails", "attack_ids": ["LLM06:2026"], "status": "planned" },
+        { "threat": "Phishing / BEC text analysis", "engine": "Multimodal (text)", "source": "Email/messaging", "attack_ids": ["T1566"], "status": "planned" },
+        { "threat": "QR-code phishing", "engine": "Multimodal (vision)", "source": "Image pipeline", "attack_ids": ["T1204"], "status": "planned" },
+        { "threat": "Document manipulation indicators", "engine": "Multimodal (vision)", "source": "Image/document pipeline", "attack_ids": [], "status": "planned" },
+        { "threat": "Synthetic speech indicators", "engine": "Multimodal (audio)", "source": "Audio pipeline", "attack_ids": [], "status": "planned" },
+        { "threat": "Deepfake video indicators", "engine": "Multimodal (video)", "source": "Video pipeline", "attack_ids": [], "status": "planned" }
+      ]
+    },
+    {
+      "phase": 4,
+      "name": "Autonomous Investigation",
+      "status": "planned",
+      "capabilities": [
+        { "threat": "Orchestrated investigation agents", "engine": "Agent Orchestrator", "source": "Internal", "attack_ids": [], "status": "planned" },
+        { "threat": "Attack-path / campaign correlation", "engine": "Correlation", "source": "Incidents", "attack_ids": [], "status": "planned" },
+        { "threat": "AI-generated investigation summaries (grounded)", "engine": "Reporting", "source": "Internal LLM", "attack_ids": [], "status": "planned" },
+        { "threat": "Guided threat hunting", "engine": "Hunting", "source": "Internal", "attack_ids": [], "status": "planned" }
+      ]
+    },
+    {
+      "phase": 5,
+      "name": "Controlled Response & Deception",
+      "status": "planned",
+      "capabilities": [
+        { "threat": "Policy-gated response actions (L0–L4)", "engine": "Response", "source": "Internal", "attack_ids": [], "status": "planned" },
+        { "threat": "Approval workflows + action verification", "engine": "Response", "source": "Internal", "attack_ids": [], "status": "planned" },
+        { "threat": "Isolated honeypots / canary tokens", "engine": "Deception", "source": "Isolated decoys", "attack_ids": [], "status": "planned" },
+        { "threat": "Deception interaction intelligence", "engine": "Deception", "source": "Decoy telemetry", "attack_ids": [], "status": "planned" }
+      ]
+    },
+    {
+      "phase": 6,
+      "name": "3D Virtual Security Operations",
+      "status": "planned",
+      "capabilities": [
+        { "threat": "Live 3D digital twin of infrastructure", "engine": "3D Office", "source": "WebSocket telemetry", "attack_ids": [], "status": "planned" },
+        { "threat": "Agent avatars synced to real execution", "engine": "3D Office", "source": "Agent state", "attack_ids": [], "status": "planned" },
+        { "threat": "Animated attack paths from recorded events", "engine": "3D Office", "source": "Incidents", "attack_ids": [], "status": "planned" },
+        { "threat": "Historical incident replay", "engine": "3D Office", "source": "Incidents", "attack_ids": [], "status": "planned" }
+      ]
+    }
+  ]
+}
