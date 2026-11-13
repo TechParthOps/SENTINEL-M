@@ -2,7 +2,7 @@
 
 All notable development changes. Format loosely follows Keep a Changelog; versions are phase-gates.
 
-## [0.1.0] — Phase 1: Core Platform — 2026-11-12
+## [0.1.0] — Phase 1: Core Platform — 2026-11-13
 
 ### Added
 - Phase 0 research library (`research/`): standards adoption (ATT&CK v20, OCSF 1.5.0, OWASP LLM
@@ -10,27 +10,34 @@ All notable development changes. Format loosely follows Keep a Changelog; versio
   component selection, source register.
 - Backend core (FastAPI + SQLAlchemy/SQLite WAL):
   - JWT auth (HS256, in-repo stdlib implementation), PBKDF2 password hashing, RBAC roles.
-  - Asset inventory API.
-  - Event ingestion gateway (batch, authenticated, rate-limited) + OCSF-aligned normalization
-    pipeline with source adapters (generic JSON, syslog-style auth, process, network, dns, file,
-    http).
-  - Deterministic detection rule engine (JSON rules, 8 Phase-1 rules across AUTH/NET/HOST/FILE/WEB).
-  - Alert management, correlation engine (entity-time grouping + attack-chain rules) producing
-    incidents with evidence references and ATT&CK mappings.
-  - Audit log (hash-chained, append-only).
-  - Async event bus + authenticated WebSocket streaming (events/alerts/incidents/health topics).
-  - System health registry + health API.
-  - Overview statistics API.
-- Frontend (React 18 + TS + Vite + Tailwind + Zustand + Recharts):
+  - Asset inventory API (manual + telemetry auto-registration with honest source flags).
+  - Event ingestion gateway (batch 1–1000, authenticated, rate-limited) + OCSF-aligned normalization
+    pipeline with adapters (auth, process, network, dns, file, http; unknown types preserved as
+    `generic`).
+  - Deterministic detection rule engine (9 Phase-1 JSON rules across AUTH/NET/HOST/FILE/WEB with
+    ATT&CK mappings, distinct-field thresholds, signature dedup + cooldown).
+  - Alert management with analyst workflow (analyst+ enforced).
+  - Correlation engine (entity grouping + attack-chain escalation) producing incidents with
+    evidence references, ATT&CK mappings and timelines.
+  - Hash-chained append-only audit log; module health registry; overview statistics API.
+  - Async event bus + authenticated WebSocket streaming.
+- Frontend (React 18 + TS + Vite + Tailwind v4 + Zustand + Recharts):
   - Login (real JWT), role-aware shell with full 22-item navigation; unbuilt areas render honest
     "Planned — Phase N" panels (ADR-010).
-  - Overview dashboard (live metrics from API), Live Operations (WebSocket event feed),
-    Incidents list + detail (evidence, ATT&CK mapping, timeline), Assets, Detection Rules,
-    System Health, Capabilities matrix page.
-- Backend test suite (pytest): auth, ingestion/normalization, detection rules, correlation,
-  audit chain, health, RBAC.
-- Frontend: Vite build verification + smoke render test.
+  - Overview dashboard (live metrics + charts), Live Operations (WebSocket + REST feed),
+    Threat Detection (alerts + workflow), Incidents list + evidence detail, Assets, Detection
+    Rules, System Health + audit view, Capabilities matrix (live coverage data), Settings.
+- Docs: `docs/ARCHITECTURE.md`, `docs/API.md`, `docs/REPORTS/phase1_report.md`, root README/SECURITY.
+- Verification scripts: `scripts/smoke_test.ps1` (live attack sequence), `scripts/e2e_frontend.ps1`
+  (API + SPA through the dev proxy).
+
+### Verification
+- Backend pytest: **39/39 passed**.
+- Frontend vitest: **7/7 passed**; production build clean (0 TS errors).
+- Live-suite: 53-event attack sequence → 5 alerts across 5 rules, escalated chain incident
+  (sev 6, 3 ATT&CK techniques) with 3 evidence-linked alerts; audit hash chain valid;
+  unauthorized requests rejected 401; viewer role denied alert mutations 403.
 
 ### Security
-- Rate limiting on auth + ingestion; strict Pydantic validation; audit records for all
-  state-changing calls.
+- Rate limiting on auth + ingestion; strict Pydantic validation at every boundary; audit records
+  for all state-changing calls; seeded sample assets flagged `sample` in UI (ADR-008).
