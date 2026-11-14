@@ -18,6 +18,11 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(16), default="viewer")  # viewer|analyst|admin
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     must_change_password: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Phase 7 — MFA (TOTP secret + hashed recovery codes); mfa_secret stays null until enrollment
+    mfa_secret: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    mfa_recovery: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+    mfa_enrolled_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc)

@@ -62,6 +62,28 @@ class TokenOut(ORMModel):
     username: str
     role: str
     expires_in: int
+    # Phase 7 MFA: when true the token is an MFA step-up token (scope "mfa") and the
+    # client must call /auth/mfa/verify or /auth/mfa/recovery-login for a real session.
+    mfa_required: bool = False
+
+
+class MfaVerifyRequest(ORMModel):
+    mfa_token: str = Field(min_length=10, max_length=4096)
+    code: str = Field(min_length=6, max_length=12)
+
+
+class MfaRecoveryRequest(ORMModel):
+    mfa_token: str = Field(min_length=10, max_length=4096)
+    recovery_code: str = Field(min_length=6, max_length=32)
+
+
+class MfaActivateRequest(ORMModel):
+    code: str = Field(min_length=6, max_length=12)
+
+
+class MfaDisableRequest(ORMModel):
+    password: str = Field(min_length=1, max_length=128)
+    code: str = Field(min_length=6, max_length=12)
 
 
 # ------------------------------------------------------------------ assets
@@ -85,6 +107,7 @@ class AssetOut(ORMModel):
     os: str
     owner: str
     criticality: int
+    isolated: bool = False
     auto_registered: bool
     sample: bool
     tags: list[str]
@@ -118,6 +141,7 @@ class EventOut(ORMModel):
     action: Optional[str]
     source_product: str
     observables: list[dict]
+    raw: Optional[dict] = None
 # ------------------------------------------------------------------ alerts
 class AlertPatch(ORMModel):
     status: Literal["new", "ack", "investigating", "resolved", "closed", "false_positive"]

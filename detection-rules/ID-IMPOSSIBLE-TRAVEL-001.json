@@ -1,0 +1,22 @@
+{
+  "id": "ID-IMPOSSIBLE-TRAVEL-001",
+  "title": "Impossible-travel login (same identity, distant geographies)",
+  "type": "pattern",
+  "class": "authentication",
+  "where": {"outcome": "success", "geo_country_present": "true"},
+  "patterns": [
+    {"field": "session_geo_change", "regex": "true"}
+  ],
+  "entity_field": "user",
+  "entity_type": "user",
+  "signature_field": "user",
+  "cooldown_seconds": 1800,
+  "severity_id": 4,
+  "category": "identity_threat",
+  "attack_ids": ["T1078"],
+  "attack_tactics": ["Defense Evasion", "Persistence", "Privilege Escalation", "Initial Access"],
+  "message_template": "Impossible travel for account {entity}: session geography changed (VPN/identity misuse indicator)",
+  "status": "experimental",
+  "source": "SENTINEL-M deterministic rule (Phase 2)",
+  "notes": "Requires the identity adapter to annotate events with geo fields and session_geo_change (correlates logins for one user within the window). No geolocation DB is bundled; offline GeoLite2 loader is a documented Phase-2 option."
+}

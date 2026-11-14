@@ -1,0 +1,21 @@
+{
+  "id": "NET-C2-DGA-001",
+  "title": "Algorithmically generated / high-entropy DNS domains (DGA indicators)",
+  "type": "threshold",
+  "class": "dns_activity",
+  "where": {"dns_label_entropy_class": "high"},
+  "group_by": "host",
+  "entity_type": "host",
+  "window_seconds": 600,
+  "min_count": 3,
+  "distinct_field": "dns_query",
+  "cooldown_seconds": 900,
+  "severity_id": 3,
+  "category": "command_and_control",
+  "attack_ids": ["T1568.002"],
+  "attack_tactics": ["Command and Control"],
+  "message_template": "{distinct} distinct high-entropy DNS queries from {entity} within {window_seconds}s",
+  "status": "experimental",
+  "source": "SENTINEL-M deterministic rule (Phase 2)",
+  "notes": "Entropy is computed deterministically from the first DNS label (Shannon bits/char, ≥3.2 with length ≥16 = high). CDN/telemetry noise is possible; combine with threat intel and domain age in later phases."
+}

@@ -1,0 +1,21 @@
+{
+  "id": "HOST-SVC-CREATE-001",
+  "title": "New Windows service creation (persistence/privilege escalation)",
+  "type": "pattern",
+  "class": "process_activity",
+  "patterns": [
+    {"field": "command_line", "regex": "(?i)(sc(\\.exe)?\\s+(create|config)|new-service\\s)"}
+  ],
+  "entity_field": "host",
+  "entity_type": "host",
+  "signature_field": "command_line",
+  "cooldown_seconds": 1800,
+  "severity_id": 4,
+  "category": "persistence",
+  "attack_ids": ["T1543.003"],
+  "attack_tactics": ["Persistence"],
+  "message_template": "Service creation/modification on {entity}: {match}",
+  "status": "stable",
+  "source": "SENTINEL-M deterministic rule (Phase 2)",
+  "notes": "Service creation is noisy in admin environments; pair with parent-process and account context before escalation."
+}

@@ -36,6 +36,9 @@ class Settings(BaseSettings):
     max_batch_events: int = 1000
 
     seed_admin_password: str = ""  # installer/smoke-test convenience; generated if empty
+    test_intel_feeds_dir: str = ""  # tests only: overrides intel feed directory
+    response_enabled: bool = True  # emergency stop: false disables all real response actions
+    deception_bind: str = "127.0.0.1"  # honeypot listeners bind here (isolation default)
 
     @property
     def secret_key_is_insecure(self) -> bool:

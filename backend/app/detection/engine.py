@@ -87,7 +87,9 @@ class DetectionEngine:
         return alerts
 
     def _view(self, event) -> dict:
-        v = dict(getattr(event, "raw", {}) or {})
+        raw = getattr(event, "raw", {}) or {}
+        v = dict(raw)
+        v.update(raw.get("_derived", {}))  # Phase-2 derived metrics (DNS entropy class, volumes)
         v["class_name"] = event.class_name
         v["event_id"] = event.id
         v["severity_id"] = event.severity_id
@@ -107,10 +109,9 @@ class DetectionEngine:
             return None
 
         if rule.type == "threshold":
-            key = view.get(rule.group_by)
+            key = rule.group_key(view)
             if key is None:
                 return None
-            key = str(key)
             now = time.time()
             self._window.append(
                 {

@@ -66,5 +66,9 @@ def test_coverage_endpoint_matches_matrix(client, admin_headers):
     phases = {p["phase"]: p for p in body["phases"]}
     assert phases[1]["status"] == "implemented"
     assert all(c["status"] == "implemented" for c in phases[1]["capabilities"])
-    assert phases[6]["status"] == "planned"
+    # Phase 6 (3D office) is implemented; the declined-by-design avatar/animation
+    # capability must stay marked planned (ADR-008 honesty — never claim fake activity)
+    assert phases[6]["status"] == "implemented"
+    p6_statuses = {c["status"] for c in phases[6]["capabilities"]}
+    assert "implemented" in p6_statuses and "planned" in p6_statuses
     assert body["runtime"]["rules_loaded"] >= 9

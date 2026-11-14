@@ -1,0 +1,21 @@
+{
+  "id": "HOST-REGISTRY-PERSIST-001",
+  "title": "Registry Run key modification (autostart persistence)",
+  "type": "pattern",
+  "class": "process_activity",
+  "patterns": [
+    {"field": "command_line", "regex": "(?i)(reg(\\.exe)?\\s+add.{0,120}(currentversion\\\\run|runonce| wow6432node.{0,40}run))"}
+  ],
+  "entity_field": "host",
+  "entity_type": "host",
+  "signature_field": "command_line",
+  "cooldown_seconds": 1800,
+  "severity_id": 4,
+  "category": "persistence",
+  "attack_ids": ["T1547.001"],
+  "attack_tactics": ["Persistence"],
+  "message_template": "Registry Run key modification on {entity}: {match}",
+  "status": "stable",
+  "source": "SENTINEL-M deterministic rule (Phase 2)",
+  "notes": "Command-line visibility only; direct registry API writes (Sysmon Event 13) are mapped when the endpoint adapter lands."
+}

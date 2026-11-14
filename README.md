@@ -4,7 +4,7 @@
 
 SENTINEL-M is a local-first, modular cybersecurity platform that ingests security telemetry,
 normalizes it to an OCSF-aligned schema, detects threats with deterministic explainable rules,
-correlates alerts into incidents with evidence-backed narratives, and — in later phases — adds
+correlates alerts into incidents with evidence-backed narratives, and - in later phases - adds
 AI/LLM security, multimodal forensics, autonomous investigation agents, controlled response,
 deception technology, and a live 3D virtual security-operations environment driven by real data.
 
@@ -17,16 +17,17 @@ deception technology, and a live 3D virtual security-operations environment driv
 |---|---|---|
 | 0 | Research, architecture, standards | ✅ Complete |
 | 1 | Core platform: auth, DB, ingestion, normalization, detection, correlation, WebSocket, dashboard | ✅ Implemented & tested |
-| 2 | Traditional cyber defense (network/endpoint/intel engines, adapters) | 📋 Planned |
-| 3 | AI & multimodal security (prompt injection, QR, image/audio/video forensics) | 📋 Planned |
-| 4 | Autonomous investigation agents | 📋 Planned |
-| 5 | Controlled response & deception | 📋 Planned |
-| 6 | 3D virtual security-operations office | 📋 Planned |
-| 7 | Enterprise readiness (installer, hardening, packaging) | 📋 Planned |
+| 2 | Traditional cyber defense (network/endpoint/intel engines, adapters) | ✅ Implemented & tested |
+| 3 | AI & multimodal security (prompt injection, QR, image/audio/video forensics) | ✅ Implemented & tested |
+| 4 | Autonomous investigation agents (deterministic, read-only, evidence-chained) | ✅ Implemented & tested |
+| 5 | Controlled response & deception (allowlist + approval + verification + rollback) | ✅ Implemented & tested |
+| 6 | 3D virtual security-operations office (live-synced to real data, replay, 2D fallback) | ✅ Implemented & tested |
+| 7 | Enterprise readiness: MFA (TOTP), local installer, backup, SBOM, performance smoke | 🟡 Partial (packaging + SSO honestly deferred) |
 
 The authoritative capability matrix lives in
 [`research/THREAT_COVERAGE_MATRIX.md`](research/THREAT_COVERAGE_MATRIX.md) and is rendered
-in-product on the Capabilities page.
+in-product on the Capabilities page. See [`docs/REPORTS/FINAL_REPORT.md`](docs/REPORTS/FINAL_REPORT.md)
+for the full development report and release-readiness classification.
 
 ## Quick start (development)
 
@@ -39,11 +40,12 @@ python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
 copy .env.example .env   # then edit SECRET_KEY
-uvicorn app.main:app --reload --port 8000
+uvicorn app.main:app --reload --port 8942   # 8000 can be blocked on some Windows hosts
 
 # 2. Frontend (second terminal)
 cd frontend
 npm install
+$env:VITE_API_TARGET="http://127.0.0.1:8942"; $env:VITE_WS_TARGET="ws://127.0.0.1:8942"
 npm run dev              # http://localhost:5173
 
 # 3. Tests
@@ -57,10 +59,10 @@ changed** on first login (Phase 1: the seed log is the credential source of trut
 
 ## Documentation
 
-- [`research/`](research) — standards, comparisons, ADRs, coverage matrix, sources
-- [`docs/`](docs) — architecture, API guide, reports
-- [`SECURITY.md`](SECURITY.md) — responsible disclosure & security model
-- [`CHANGELOG.md`](CHANGELOG.md) — development history
+- [`research/`](research) - standards, comparisons, ADRs, coverage matrix, sources
+- [`docs/`](docs) - architecture, API guide, reports, install guide
+- [`SECURITY.md`](SECURITY.md) - responsible disclosure & security model
+- [`CHANGELOG.md`](CHANGELOG.md) - development history
 
 ## License
 

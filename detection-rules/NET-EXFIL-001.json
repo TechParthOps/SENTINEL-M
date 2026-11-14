@@ -1,0 +1,22 @@
+{
+  "id": "NET-EXFIL-001",
+  "title": "Large outbound transfer volume on a single connection",
+  "type": "pattern",
+  "class": "network_activity",
+  "where_gte": {"bytes_out": 50000000},
+  "patterns": [
+    {"field": "src_ip", "regex": "."}
+  ],
+  "entity_field": "src_ip",
+  "entity_type": "ip",
+  "signature_field": "dst_ip",
+  "cooldown_seconds": 1800,
+  "severity_id": 4,
+  "category": "exfiltration",
+  "attack_ids": ["T1041"],
+  "attack_tactics": ["Exfiltration"],
+  "message_template": "Outbound transfer over 50MB to {entity}",
+  "status": "experimental",
+  "source": "SENTINEL-M deterministic rule (Phase 2)",
+  "notes": "Volume indicator only. Requires sensors to populate bytes_out. Enterprise backup/sync traffic can trigger this — correlate with asset role and schedule."
+}

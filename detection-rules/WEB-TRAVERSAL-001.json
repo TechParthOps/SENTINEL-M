@@ -1,0 +1,21 @@
+{
+  "id": "WEB-TRAVERSAL-001",
+  "title": "Path traversal indicators in request URI",
+  "type": "pattern",
+  "class": "web_resource_access_activity",
+  "patterns": [
+    {"field": "http_url", "regex": "(?i)(\\.\\./|\\.\\.\\\\|%2e%2e|%252e%252e|etc/passwd|/windows/win\\.ini|boot\\.ini|/proc/self/)"}
+  ],
+  "entity_field": "src_ip",
+  "entity_type": "ip",
+  "signature_field": "http_url",
+  "cooldown_seconds": 1800,
+  "severity_id": 3,
+  "category": "web_attack",
+  "attack_ids": ["T1190", "T1083"],
+  "attack_tactics": ["Initial Access", "File and Directory Discovery"],
+  "message_template": "Path traversal attempt from {entity}: {match}",
+  "status": "stable",
+  "source": "SENTINEL-M deterministic rule (Phase 2)",
+  "notes": "Attempt-level indicator from access logs; response codes in payloads can be correlated for confirmation."
+}

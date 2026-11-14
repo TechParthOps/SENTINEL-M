@@ -1,0 +1,19 @@
+{
+  "id": "NET-BEACON-001",
+  "title": "Periodic outbound beacon to the same destination (C2 callback pattern)",
+  "type": "threshold",
+  "class": "network_activity",
+  "group_by": ["src_ip", "dst_ip", "dst_port"],
+  "entity_type": "ip",
+  "window_seconds": 1800,
+  "min_count": 12,
+  "cooldown_seconds": 1800,
+  "severity_id": 3,
+  "category": "command_and_control",
+  "attack_ids": ["T1071.001"],
+  "attack_tactics": ["Command and Control"],
+  "message_template": "{count} connections from {entity} within {window_seconds}s — periodic callback pattern",
+  "status": "experimental",
+  "source": "SENTINEL-M deterministic rule (Phase 2)",
+  "notes": "Volume pattern only; legit update/polling services can also beacon. Phase 2 follow-up: jitter-vs-interval-variance classification and known-service allowlist to reduce false positives."
+}

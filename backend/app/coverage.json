@@ -22,7 +22,7 @@
         {"name": "Asset inventory (manual + auto-registration from telemetry)", "status": "implemented"},
         {"name": "Authenticated event ingestion gateway", "status": "implemented"},
         {"name": "OCSF-aligned event normalization", "status": "implemented"},
-        {"name": "Deterministic detection rule engine (9 rules)", "status": "implemented"},
+        {"name": "Deterministic detection rule engine", "status": "implemented"},
         {"name": "Alert management with analyst workflow", "status": "implemented"},
         {"name": "Incident correlation (entity grouping + attack-chain escalation)", "status": "implemented"},
         {"name": "WebSocket live streaming", "status": "implemented"},
@@ -32,69 +32,88 @@
     },
     {
       "phase": 2,
-      "status": "planned",
+      "status": "implemented",
       "title": "Traditional cyber defense",
       "capabilities": [
-        {"name": "Network security engine (Zeek/Suricica adapters, beaconing, C2)", "status": "planned"},
-        {"name": "Endpoint security engine (Sysmon/osquery/Wazuh adapters)", "status": "planned"},
-        {"name": "Identity threat detection", "status": "planned"},
-        {"name": "Web/API security engine", "status": "planned"},
-        {"name": "Malware static analysis + YARA + sandbox adapter", "status": "planned"},
-        {"name": "Threat intelligence engine (MISP/OpenCTI/TAXII adapters)", "status": "planned"}
+        {"name": "Network detection set: beaconing, C2/DGA, DNS tunneling, exfiltration volume, port scan", "status": "implemented"},
+        {"name": "Network Security UI page (telemetry + network rule alerts)", "status": "implemented"},
+        {"name": "Endpoint detection set: PowerShell abuse, persistence, credential dump, Run keys, service creation, ransomware velocity", "status": "implemented"},
+        {"name": "Endpoint Security UI page (process/file/auth telemetry + host rule alerts)", "status": "implemented"},
+        {"name": "Impossible-travel identity detection (geo-annotated auth telemetry)", "status": "implemented"},
+        {"name": "Web/API attack patterns: SQLi, XSS, SSRF, path traversal", "status": "implemented"},
+        {"name": "Malware static analysis: hashing, entropy, PE parse, strings, zip/archive, Office macro detection", "status": "implemented"},
+        {"name": "File analysis API + Multimodal Forensics UI (hash lookup, no byte retention)", "status": "implemented"},
+        {"name": "Threat intelligence engine: STIX 2.1 import, dedup, indicator aging, event enrichment, INTEL-IOC-001 alerts", "status": "implemented"},
+        {"name": "Threat Intelligence UI page (registry, lookup, feed reload)", "status": "implemented"},
+        {"name": "Zeek/Suricata/Sysmon/osquery/Wazuh log-tail adapters", "status": "planned"},
+        {"name": "YARA scanning + isolated sandbox adapter", "status": "planned"},
+        {"name": "MISP/OpenCTI live TAXII feed clients (Phase 2 uses local STIX feeds)", "status": "planned"}
       ]
     },
     {
       "phase": 3,
-      "status": "planned",
+      "status": "implemented",
       "title": "AI and multimodal defense",
       "capabilities": [
-        {"name": "Prompt-injection / LLM security engine", "status": "planned"},
-        {"name": "Phishing and document analysis", "status": "planned"},
-        {"name": "QR code security", "status": "planned"},
-        {"name": "Image forensics", "status": "planned"},
-        {"name": "Audio forensics (synthetic speech indicators)", "status": "planned"},
-        {"name": "Video / deepfake analysis", "status": "planned"}
+        {"name": "Prompt-injection / LLM security engine (deterministic heuristics + confidence)", "status": "implemented"},
+        {"name": "Phishing / BEC text analysis (urgency, authority, lures, link indicators)", "status": "implemented"},
+        {"name": "QR code security (OpenCV decode + payload threat analysis)", "status": "implemented"},
+        {"name": "Image forensics (metadata/EXIF, generative-AI tool strings, recompression probe)", "status": "implemented"},
+        {"name": "Audio forensics — WAV/PCM statistics with low-confidence synthetic-speech indicators", "status": "implemented"},
+        {"name": "Video forensics — OpenCV-decodable containers, frame/face statistics (no neural detectors)", "status": "implemented"},
+        {"name": "PDF/OOXML document structural analysis (script/action object indicators)", "status": "implemented"},
+        {"name": "OCR text extraction (no tesseract binary in this build)", "status": "blocked"},
+        {"name": "Neural deepfake/synthetic-speech detectors (needs ML runtime + models)", "status": "blocked"},
+        {"name": "MP3/OGG/FLAC audio decoding (needs bundled decoders)", "status": "blocked"},
+        {"name": "Agent security monitoring (built with the Phase-4 agent layer)", "status": "planned"}
       ]
     },
     {
       "phase": 4,
-      "status": "planned",
+      "status": "implemented",
       "title": "Autonomous investigation",
       "capabilities": [
-        {"name": "Agent orchestrator and specialist agents", "status": "planned"},
-        {"name": "Evidence collection with chain of custody", "status": "planned"},
-        {"name": "Attack timelines and threat hunting queries", "status": "planned"}
+        {"name": "Agent orchestrator and specialist agents (deterministic, read-only, no LLM required)", "status": "implemented"},
+        {"name": "Permission boundaries: read-only specialists, per-investigation evidence chain (SHA-256), time budget", "status": "implemented"},
+        {"name": "Evidence collection with chain of custody (per-step hashes, tamper-evident chain)", "status": "implemented"},
+        {"name": "Threat hunting queries and long-term timelines (/hunt API + UI)", "status": "implemented"},
+        {"name": "LLM-narrated investigation summaries (optional post-hook, no model in this build)", "status": "blocked"}
       ]
     },
     {
       "phase": 5,
-      "status": "planned",
+      "status": "implemented",
       "title": "Response and deception",
       "capabilities": [
-        {"name": "Policy-authorized response engine with approvals", "status": "planned"},
-        {"name": "Action verification and rollback", "status": "planned"},
-        {"name": "Isolated deception and honeypot subsystem", "status": "planned"}
+        {"name": "Policy-authorized response engine (allowlist actions, L0/L1/L2 autonomy levels)", "status": "implemented"},
+        {"name": "Approval workflows, dry-run, rollback and post-action verification", "status": "implemented"},
+        {"name": "Isolated deception and honeypot subsystem with containment boundaries (loopback bind, safe stop)", "status": "implemented"},
+        {"name": "Enterprise workflow integrations (ticketing, chatops) — none available in this build", "status": "blocked"}
       ]
     },
     {
       "phase": 6,
-      "status": "planned",
+      "status": "implemented",
       "title": "3D virtual security operations office",
       "capabilities": [
-        {"name": "Interactive 3D operations environment (R3F)", "status": "planned"},
-        {"name": "Digital twin with visualization modes", "status": "planned"},
-        {"name": "Live agent avatars and attack-path animation", "status": "planned"},
-        {"name": "Incident historical replay", "status": "planned"}
+        {"name": "Interactive 3D operations environment (R3F, WebGL + 2D fallback): partitioned rooms with doors/glass, desks with monitors, wall signage, central video wall, ceiling beams", "status": "implemented"},
+        {"name": "Digital twin: room metrics from real REST, markers from confirmed WS frames (no simulated activity)", "status": "implemented"},
+        {"name": "Incident historical replay (real persisted alerts, pause/resume)", "status": "implemented"},
+        {"name": "Live agent avatars and attack-path animation (declined by design: would fabricate activity — real WS markers shown instead)", "status": "planned"}
       ]
     },
     {
       "phase": 7,
-      "status": "planned",
+      "status": "partial",
       "title": "Enterprise readiness",
       "capabilities": [
-        {"name": "Guided installer and update mechanism", "status": "planned"},
-        {"name": "Enterprise hardening (MFA, backup, SBOM)", "status": "planned"},
-        {"name": "Performance and regression testing", "status": "planned"}
+        {"name": "Multi-factor authentication (TOTP RFC 6238 + single-use recovery codes, stdlib-only)", "status": "implemented"},
+        {"name": "Local installer + first-run configuration (scripts/install.ps1, backend/.env)", "status": "implemented"},
+        {"name": "Database backup tool (consistent SQLite online backup, rolling retention)", "status": "implemented"},
+        {"name": "SBOM generation (CycloneDX 1.5 from installed package metadata)", "status": "implemented"},
+        {"name": "Performance smoke tests (regression guards, not benchmarks)", "status": "implemented"},
+        {"name": "Automated update mechanism / package distribution (installer app, no GUI packaging)", "status": "planned"},
+        {"name": "Enterprise workflow integrations (SSO/SAML/LDAP, ticketing)", "status": "blocked"}
       ]
     }
   ]

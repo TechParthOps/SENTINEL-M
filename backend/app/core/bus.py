@@ -8,7 +8,7 @@ from __future__ import annotations
 import asyncio
 from collections import defaultdict
 
-_TOPICS = ["events", "alerts", "incidents", "assets", "health", "agents"]
+_TOPICS = ["events", "alerts", "incidents", "assets", "health", "agents", "response", "deception"]
 
 
 class EventBus:

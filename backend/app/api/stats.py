@@ -63,6 +63,16 @@ def overview(user: CurrentUser, db: Session = Depends(get_db)):
         db.query(Event.class_name, func.count(Event.id)).group_by(Event.class_name).all()
     )
 
+    # Phase 2: threat-intelligence posture (live counts, no simulated feeds)
+    from app.intelligence.engine import intelligence_engine
+
+    intel_status = intelligence_engine.feed_status(db)
+    intel_hits_24h = (
+        db.query(func.count(Alert.id))
+        .filter(Alert.rule_id == "INTEL-IOC-001", Alert.time >= day_start)
+        .scalar() or 0
+    )
+
     return {
         "generated_at": now.isoformat(),
         "events": {
@@ -92,4 +102,11 @@ def overview(user: CurrentUser, db: Session = Depends(get_db)):
             ),
         },
         "top_rules_24h": [{"rule_id": r, "count": c} for r, c in top_rules],
+        "intel": {
+            "indicators_total": intel_status["total"],
+            "indicators_active": intel_status["by_status"].get("active", 0),
+            "indicators_expired": intel_status["by_status"].get("expired", 0),
+            "feeds": list(intel_status["by_source"].keys()),
+            "event_hits_24h": intel_hits_24h,
+        },
     }

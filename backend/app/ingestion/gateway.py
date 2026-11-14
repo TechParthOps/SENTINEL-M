@@ -1,4 +1,4 @@
-"""Ingestion gateway: validate -> normalize -> persist -> detect -> correlate -> broadcast."""
+"""Ingestion gateway: validate -> normalize -> persist -> annotate -> detect -> correlate -> enrich."""
 from __future__ import annotations
 
 import uuid
@@ -9,6 +9,8 @@ from sqlalchemy.orm import Session
 from app.core import audit
 from app.core.bus import bus
 from app.detection.engine import detection_engine
+from app.identity.engine import identity_engine
+from app.intelligence.engine import intelligence_engine
 from app.ingestion.normalizer import event_public, normalize_event
 from app.models.asset import Asset
 from app.models.event import Event
@@ -49,10 +51,12 @@ def ingest_events(db: Session, payload, actor: str = "system") -> dict:
         db.add(event)
         db.flush()  # id + row exist before detection so evidence references resolve
         register_asset_from_event(db, event.host, event.src_ip)
+        identity_engine.annotate(event, db)  # cross-session context before detection
         created = detection_engine.evaluate(event, db, actor=actor)
         alerts_created += len(created)
         for a in created:
             incidents_touched += 1 if a.incident_id else 0
+        intelligence_engine.enrich(event, db, actor=actor)  # IOC correlation → intel alerts
         bus.publish("events", event_public(event))
         event_ids.append(event.id)
         accepted += 1

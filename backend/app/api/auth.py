@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import time
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
@@ -14,15 +15,53 @@ from app.core.security import (
     CurrentUser,
     authenticate,
     client_identity,
+    decode_jwt,
     encode_jwt,
     hash_password,
     validate_password_policy,
     verify_password,
 )
+from app.core import mfa as mfa_core
 from app.models.user import User
-from app.schemas import ChangePasswordRequest, LoginRequest, TokenOut, UserCreate, UserOut
+from app.schemas import (
+    ChangePasswordRequest,
+    LoginRequest,
+    MfaActivateRequest,
+    MfaDisableRequest,
+    MfaRecoveryRequest,
+    MfaVerifyRequest,
+    TokenOut,
+    UserCreate,
+    UserOut,
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+MFA_STEP_TOKEN_SECONDS = 300  # 5 minutes to complete the second factor
+
+
+def _full_token(user: User) -> TokenOut:
+    token = encode_jwt({"sub": str(user.id), "username": user.username, "role": user.role})
+    return TokenOut(
+        access_token=token,
+        username=user.username,
+        role=user.role,
+        expires_in=settings.token_ttl_minutes * 60,
+    )
+
+
+def _mfa_token(user: User) -> TokenOut:
+    token = encode_jwt({
+        "sub": str(user.id), "username": user.username, "role": user.role,
+        "scope": "mfa", "exp": int(time.time()) + MFA_STEP_TOKEN_SECONDS,
+    })
+    return TokenOut(
+        access_token=token,
+        username=user.username,
+        role=user.role,
+        expires_in=MFA_STEP_TOKEN_SECONDS,
+        mfa_required=True,
+    )
 
 
 @router.post("/login", response_model=TokenOut)
@@ -33,17 +72,16 @@ def login(req: LoginRequest, request: Request, db: Session = Depends(get_db)):
         audit.record("auth.login", actor=req.username, details={"result": "failure"})
         raise HTTPException(401, "invalid credentials")
     audit.record(
-        "auth.login", actor=user.username, details={"result": "success", "role": user.role}
+        "auth.login", actor=user.username,
+        details={"result": "success", "role": user.role,
+                 "mfa": "required" if user.mfa_enabled else "not_enabled"},
     )
-    token = encode_jwt({"sub": str(user.id), "username": user.username, "role": user.role})
     user.last_login_at = dt.datetime.now(dt.timezone.utc)
     db.commit()
-    return TokenOut(
-        access_token=token,
-        username=user.username,
-        role=user.role,
-        expires_in=settings.token_ttl_minutes * 60,
-    )
+    if user.mfa_enabled:
+        # first factor only — the real session token is issued after step-up
+        return _mfa_token(user)
+    return _full_token(user)
 
 
 @router.get("/me", response_model=UserOut)
@@ -109,7 +147,7 @@ def create_user(req: UserCreate, request: Request, db: Session = Depends(get_db)
 
 def _caller_is_admin(request: Request) -> bool:
     """Best-effort check of the Authorization header (secrets module stays pure)."""
-    from app.core.security import decode_jwt
+    from app.core.security import decode_jwt  # noqa: F811 (re-exported for this helper)
 
     header = request.headers.get("authorization", "")
     if not header.startswith("Bearer "):
@@ -119,3 +157,126 @@ def _caller_is_admin(request: Request) -> bool:
     except Exception:
         return False
     return claims.get("role") == "admin"
+
+
+# ----------------------------------------------------------------- MFA (Phase 7)
+# TOTP (RFC 6238) second factor + single-use recovery codes. The secret and hashed
+# recovery codes live in the users row; plaintext recovery codes are shown once.
+
+
+@router.get("/mfa/status")
+def mfa_status(user: CurrentUser):
+    return {
+        "enabled": bool(user.mfa_enabled),
+        "pending_enrollment": bool(user.mfa_secret) and not user.mfa_enabled,
+        "enrolled_at": user.mfa_enrolled_at.isoformat() if user.mfa_enrolled_at else None,
+        "recovery_codes_remaining": mfa_core.remaining_recovery_codes(user.mfa_recovery or "[]"),
+    }
+
+
+@router.post("/mfa/setup", status_code=201)
+def mfa_setup(user: CurrentUser, db: Session = Depends(get_db)):
+    """Start enrollment: generates a TOTP secret + recovery codes.
+
+    MFA stays disabled until /mfa/activate succeeds, so a half-finished enrollment
+    can never lock the operator out.
+    """
+    if user.mfa_enabled:
+        raise HTTPException(409, "mfa already enabled")
+    secret = mfa_core.generate_secret()
+    codes = mfa_core.generate_recovery_codes()
+    user.mfa_secret = secret
+    user.mfa_recovery = mfa_core.hash_recovery_codes(codes)
+    db.commit()
+    audit.record("auth.mfa_enrollment_started", actor=user.username, details={})
+    return {
+        "status": "pending",
+        "secret": secret,
+        "provisioning_uri": mfa_core.provisioning_uri(secret, user.username),
+        "recovery_codes": codes,  # shown exactly once, here
+        "digits": mfa_core.TOTP_DIGITS,
+        "period": mfa_core.TOTP_STEP_SECONDS,
+    }
+
+
+@router.post("/mfa/activate")
+def mfa_activate(req: MfaActivateRequest, user: CurrentUser, db: Session = Depends(get_db)):
+    if user.mfa_enabled:
+        raise HTTPException(409, "mfa already enabled")
+    if not user.mfa_secret:
+        raise HTTPException(409, "no pending enrollment — call /auth/mfa/setup first")
+    if not mfa_core.verify_totp(user.mfa_secret, req.code):
+        audit.record("auth.mfa_activate", actor=user.username, details={"result": "failure"})
+        raise HTTPException(400, "invalid authenticator code")
+    user.mfa_enabled = True
+    user.mfa_enrolled_at = dt.datetime.now(dt.timezone.utc)
+    db.commit()
+    audit.record("auth.mfa_activate", actor=user.username, details={"result": "success"})
+    return {"status": "enabled", "enrolled_at": user.mfa_enrolled_at.isoformat()}
+
+
+@router.post("/mfa/verify", response_model=TokenOut)
+def mfa_verify(req: MfaVerifyRequest, request: Request, db: Session = Depends(get_db)):
+    """Exchange a step-up token + TOTP code for a full session token."""
+    check_rate_limit(request, "auth.mfa_verify", 10)
+    try:
+        claims = decode_jwt(req.mfa_token)
+    except Exception:
+        raise HTTPException(401, "invalid or expired mfa token") from None
+    if claims.get("scope") != "mfa":
+        raise HTTPException(401, "token is not an mfa step-up token")
+    user = db.get(User, claims.get("sub"))
+    if user is None or not user.is_active or not user.mfa_enabled:
+        raise HTTPException(401, "invalid or expired mfa token")
+    if not mfa_core.verify_totp(user.mfa_secret, req.code):
+        audit.record("auth.mfa_verify", actor=user.username, details={"result": "failure"})
+        raise HTTPException(401, "invalid authenticator code")
+    audit.record("auth.mfa_verify", actor=user.username, details={"result": "success"})
+    return _full_token(user)
+
+
+@router.post("/mfa/recovery-login", response_model=TokenOut)
+def mfa_recovery_login(req: MfaRecoveryRequest, request: Request, db: Session = Depends(get_db)):
+    """Consume a single-use recovery code to obtain a full session token."""
+    check_rate_limit(request, "auth.mfa_recovery", 5)
+    try:
+        claims = decode_jwt(req.mfa_token)
+    except Exception:
+        raise HTTPException(401, "invalid or expired mfa token") from None
+    if claims.get("scope") != "mfa":
+        raise HTTPException(401, "token is not an mfa step-up token")
+    user = db.get(User, claims.get("sub"))
+    if user is None or not user.is_active or not user.mfa_enabled:
+        raise HTTPException(401, "invalid or expired mfa token")
+    ok, remaining = mfa_core.consume_recovery_code(user.mfa_recovery or "[]", req.recovery_code)
+    if not ok:
+        audit.record("auth.mfa_recovery", actor=user.username, details={"result": "failure"})
+        raise HTTPException(401, "invalid recovery code")
+    user.mfa_recovery = remaining
+    db.commit()
+    audit.record(
+        "auth.mfa_recovery", actor=user.username,
+        details={"result": "success",
+                 "remaining": mfa_core.remaining_recovery_codes(remaining)},
+    )
+    return _full_token(user)
+
+
+@router.post("/mfa/disable")
+def mfa_disable(req: MfaDisableRequest, user: CurrentUser, db: Session = Depends(get_db)):
+    """Disable MFA. Requires BOTH the current password and a valid live code."""
+    if not user.mfa_enabled:
+        raise HTTPException(409, "mfa not enabled")
+    if not verify_password(req.password, user.password_hash):
+        audit.record("auth.mfa_disable", actor=user.username, details={"result": "bad_password"})
+        raise HTTPException(400, "password is incorrect")
+    if not mfa_core.verify_totp(user.mfa_secret, req.code):
+        audit.record("auth.mfa_disable", actor=user.username, details={"result": "bad_code"})
+        raise HTTPException(400, "invalid authenticator code")
+    user.mfa_secret = None
+    user.mfa_enabled = False
+    user.mfa_recovery = None
+    user.mfa_enrolled_at = None
+    db.commit()
+    audit.record("auth.mfa_disable", actor=user.username, details={"result": "success"})
+    return {"status": "disabled"}

@@ -22,6 +22,7 @@ class Asset(Base):
     os: Mapped[str] = mapped_column(String(64), default="")
     owner: Mapped[str] = mapped_column(String(128), default="")
     criticality: Mapped[int] = mapped_column(Integer, default=3)  # 1..5
+    isolated: Mapped[bool] = mapped_column(Boolean, default=False)  # response engine flag
     auto_registered: Mapped[bool] = mapped_column(Boolean, default=False)
     sample: Mapped[bool] = mapped_column(Boolean, default=False)
     tags: Mapped[list] = mapped_column(JSON, default=list)

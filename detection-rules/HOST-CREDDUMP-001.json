@@ -1,0 +1,21 @@
+{
+  "id": "HOST-CREDDUMP-001",
+  "title": "Credential dumping indicators (LSASS access / dump tooling)",
+  "type": "pattern",
+  "class": "process_activity",
+  "patterns": [
+    {"field": "command_line", "regex": "(?i)(procdump.{0,60}(-ma|-accepteula)|comsvcs\\.dll.{0,30}minidump|sekurlsa|lsass(dump|\\.exe\\s+\\d+)?.{0,40}(-accepteula|full)|sqldumper\\s+\\d+\\s+0x01100)"}
+  ],
+  "entity_field": "host",
+  "entity_type": "host",
+  "signature_field": "command_line",
+  "cooldown_seconds": 1800,
+  "severity_id": 5,
+  "category": "credential_access",
+  "attack_ids": ["T1003.001"],
+  "attack_tactics": ["Credential Access"],
+  "message_template": "Credential-dumping behavior on {entity}: {match}",
+  "status": "stable",
+  "source": "SENTINEL-M deterministic rule (Phase 2)",
+  "notes": "Covers common command-line shapes of procdump/comsvcs.dll MiniDump against LSASS. Sysmon event 10 telemetry with access masks will be correlated in the endpoint engine expansion."
+}

@@ -60,11 +60,56 @@ def _parse_time(raw: str | None) -> datetime:
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
+def shannon_entropy(text: str) -> float:
+    """Shannon entropy of a string in bits/char (0..~6 for base32/base64)."""
+    if not text:
+        return 0.0
+    from collections import Counter
+    from math import log2
+
+    counts = Counter(text)
+    length = len(text)
+    return -sum((c / length) * log2(c / length) for c in counts.values())
+
+
+def _derived_fields(ev, p: dict) -> dict:
+    """Phase-2 derived metrics attached to the raw view for rule evaluation.
+
+    Kept deterministic and cheap (no network, no models): DNS label entropy class,
+    extent-of-recorded volume fields. Detection rules consume these via `where`.
+    """
+    derived: dict[str, str | int | float] = {}
+    query = str(p.get("dns_query", ""))
+    if query:
+        first_label = query.split(".")[0]
+        ent = shannon_entropy(first_label)
+        derived["dns_label_len"] = len(first_label)
+        derived["dns_label_entropy"] = round(ent, 3)
+        derived["dns_label_entropy_class"] = (
+            "high" if ent >= 3.2 and len(first_label) >= 16 else
+            "medium" if ent >= 2.6 and len(first_label) >= 12 else "low"
+        )
+        derived["dns_subdomain_depth"] = query.count(".") + (1 if query else 0)
+    for field in ("bytes_out", "bytes_in"):
+        try:
+            if p.get(field) is not None:
+                derived[field] = int(p[field])
+        except (TypeError, ValueError):
+            pass
+    if p.get("nxdomain") is not None:
+        derived["nxdomain"] = "true" if p.get("nxdomain") in (True, "true", "1", 1) else "false"
+    if p.get("geo_country"):
+        derived["geo_country_present"] = "true"
+        derived["geo_country"] = str(p.get("geo_country")).upper()
+    return derived
+
+
 def normalize_event(source: dict, ev) -> dict:
     """Returns a canonical event dict ready for Event(**...) and detection."""
     class_name, class_uid, default_sev = CLASS_MAP.get(ev.type, GENERIC_CLASS)
     p = ev.payload or {}
     ts = _parse_time(ev.time)
+    derived = _derived_fields(ev, p)
 
     host = p.get("host") or p.get("hostname")
     src_ip = p.get("src_ip") or p.get("source_ip")
@@ -115,7 +160,7 @@ def normalize_event(source: dict, ev) -> dict:
         "action": str(action)[:64] if action else None,
         "source_product": str(source.get("product", "unknown"))[:64],
         "source_version": str(source.get("version", ""))[:32],
-        "raw": p,
+        "raw": {**p, "_derived": derived},
         "observables": observables,
     }
 

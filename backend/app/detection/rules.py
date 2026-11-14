@@ -41,7 +41,8 @@ class Rule:
     type: str  # threshold | pattern
     class_name: str = ""
     where: dict = field(default_factory=dict)
-    group_by: str = ""
+    where_gte: dict = field(default_factory=dict)
+    group_by: str | list = ""
     entity_type: str = "host"
     window_seconds: int = 300
     min_count: int = 1
@@ -88,6 +89,7 @@ class Rule:
             type=rtype,
             class_name=data.get("class", ""),
             where=data.get("where", {}),
+            where_gte=data.get("where_gte", {}),
             group_by=data.get("group_by", ""),
             entity_type=data.get("entity_type", "host"),
             window_seconds=int(data.get("window_seconds", 300)),
@@ -116,6 +118,28 @@ class Rule:
                 return False
             if str(actual).lower() != str(expected).lower():
                 return False
+        return self.where_gte_matches(view)
+
+    def group_key(self, view: dict) -> str | None:
+        """Composite group_by (list) is joined with '→'; single field or None if missing."""
+        fields = self.group_by if isinstance(self.group_by, list) else [self.group_by]
+        parts = []
+        for f in fields:
+            v = view.get(f)
+            if v is None:
+                return None
+            parts.append(str(v))
+        return "→".join(parts)
+
+    def where_gte_matches(self, view: dict) -> bool:
+        """Numeric `field >= value` comparisons (e.g. volume thresholds)."""
+        for key, minimum in self.where_gte.items():
+            try:
+                actual = float(view.get(key, 0))
+            except (TypeError, ValueError):
+                return False
+            if actual < float(minimum):
+                return False
         return True
 
     def pattern_matches(self, view: dict) -> tuple[str | None, str | None]:
@@ -123,11 +147,16 @@ class Rule:
             hit = pat.match(view)
             if hit is None:
                 return None, None
-        first = self.patterns[0].match(view) if self.patterns else (None, None)
-        return (self.patterns[0].field if self.patterns else None), first[1] or ""
+        first_pat = self.patterns[0]
+        first = first_pat.match(view)
+        return first_pat.field, (first or "")
 
     def cooldown_over(self, last: float | None, now: float) -> bool:
         return last is None or (now - last) >= self.cooldown_seconds
+
+    def first_pattern_field(self) -> str | None:
+        """Field of the first pattern (used for message rendering)."""
+        return self.patterns[0].field if self.patterns else None
 
     # ------------------------------------------------------------- render
     def render_message(self, extra: dict) -> str:

@@ -14,19 +14,29 @@ interface AuthState {
   user: Me | null;
   loading: boolean;
   error: string | null;
+  /** Phase 7: when the server answers a login with mfa_required, the step-up token
+   * is kept here so the login form can collect the second factor. */
+  mfaToken: string | null;
   login: (username: string, password: string) => Promise<boolean>;
+  verifyMfa: (code: string, recoveryCode?: string) => Promise<boolean>;
+  clearMfa: () => void;
   logout: () => void;
   restore: () => Promise<void>;
 }
 
-export const useAuth = create<AuthState>((set) => ({
+export const useAuth = create<AuthState>((set, get) => ({
   user: null,
   loading: false,
   error: null,
+  mfaToken: null,
   async login(username, password) {
-    set({ loading: true, error: null });
+    set({ loading: true, error: null, mfaToken: null });
     try {
-      const res = await api.post<{ access_token: string }>("/auth/login", { username, password });
+      const res = await api.post<{ access_token: string; mfa_required?: boolean }>("/auth/login", { username, password });
+      if (res.mfa_required) {
+        set({ mfaToken: res.access_token, loading: false });
+        return true;
+      }
       setToken(res.access_token);
       const me = await api.get<Me>("/auth/me");
       set({ user: me, loading: false });
@@ -35,6 +45,28 @@ export const useAuth = create<AuthState>((set) => ({
       set({ loading: false, error: e instanceof Error ? e.message : "login failed" });
       return false;
     }
+  },
+  async verifyMfa(code, recoveryCode) {
+    const token = get().mfaToken;
+    if (!token) return false;
+    set({ loading: true, error: null });
+    try {
+      const path = recoveryCode ? "/auth/mfa/recovery-login" : "/auth/mfa/verify";
+      const body = recoveryCode
+        ? { mfa_token: token, recovery_code: recoveryCode }
+        : { mfa_token: token, code };
+      const res = await api.post<{ access_token: string }>(path, body);
+      setToken(res.access_token);
+      const me = await api.get<Me>("/auth/me");
+      set({ user: me, loading: false, mfaToken: null });
+      return true;
+    } catch (e) {
+      set({ loading: false, error: e instanceof Error ? e.message : "verification failed" });
+      return false;
+    }
+  },
+  clearMfa() {
+    set({ mfaToken: null, error: null });
   },
   logout() {
     setToken(null);

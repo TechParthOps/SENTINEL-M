@@ -12,6 +12,18 @@ import RulesPage from "./pages/RulesPage";
 import HealthPage from "./pages/HealthPage";
 import CoveragePage from "./pages/CoveragePage";
 import SettingsPage from "./pages/SettingsPage";
+import IntelligencePage from "./pages/IntelligencePage";
+import NetworkPage from "./pages/NetworkPage";
+import EndpointPage from "./pages/EndpointPage";
+import MalwarePage from "./pages/MalwarePage";
+import IdentityPage from "./pages/IdentityPage";
+import AISecurityPage from "./pages/AISecurityPage";
+import MultimodalPage from "./pages/MultimodalPage";
+import VirtualOfficePage from "./pages/VirtualOfficePage";
+import AgentsPage from "./pages/AgentsPage";
+import HuntPage from "./pages/HuntPage";
+import ResponsePage from "./pages/ResponsePage";
+import DeceptionPage from "./pages/DeceptionPage";
 import PlannedPage from "./pages/PlannedPage";
 
 export default function App() {
@@ -38,18 +50,19 @@ export default function App() {
           <Route path="/health" element={<HealthPage />} />
           <Route path="/capabilities" element={<CoveragePage />} />
           <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/virtual-office" element={<PlannedPage phase={6} />} />
-          <Route path="/hunting" element={<PlannedPage phase={4} />} />
-          <Route path="/network" element={<PlannedPage phase={2} />} />
-          <Route path="/endpoint" element={<PlannedPage phase={2} />} />
-          <Route path="/identity" element={<PlannedPage phase={2} />} />
-          <Route path="/ai-security" element={<PlannedPage phase={3} />} />
-          <Route path="/multimodal" element={<PlannedPage phase={3} />} />
-          <Route path="/intelligence" element={<PlannedPage phase={2} />} />
-          <Route path="/agents" element={<PlannedPage phase={4} />} />
-          <Route path="/deception" element={<PlannedPage phase={5} />} />
+          <Route path="/intelligence" element={<IntelligencePage />} />
+          <Route path="/malware" element={<MalwarePage />} />
+          <Route path="/hunting" element={<HuntPage />} />
+          <Route path="/network" element={<NetworkPage />} />
+          <Route path="/endpoint" element={<EndpointPage />} />
+          <Route path="/identity" element={<IdentityPage />} />
+          <Route path="/ai-security" element={<AISecurityPage />} />
+          <Route path="/multimodal" element={<MultimodalPage />} />
+          <Route path="/virtual-office" element={<VirtualOfficePage />} />
+          <Route path="/agents" element={<AgentsPage />} />
+          <Route path="/deception" element={<DeceptionPage />} />
           <Route path="/forensics" element={<PlannedPage phase={4} />} />
-          <Route path="/playbooks" element={<PlannedPage phase={5} />} />
+          <Route path="/playbooks" element={<ResponsePage />} />
           <Route path="/reports" element={<PlannedPage phase={7} />} />
           <Route path="/integrations" element={<PlannedPage phase={2} />} />
           <Route path="*" element={<Overview />} />

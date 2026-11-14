@@ -143,6 +143,12 @@ def get_current_user(
         raise HTTPException(
             401, f"invalid token: {exc}", headers={"WWW-Authenticate": "Bearer"}
         ) from None
+    # Phase 7: an MFA step-up token may only be exchanged at /auth/mfa/*; it must
+    # never authorize a normal API call (defence against token-scope confusion).
+    if claims.get("scope") == "mfa":
+        raise HTTPException(
+            401, "mfa step-up required", headers={"WWW-Authenticate": "Bearer"}
+        )
     from app.models.user import User
 
     user = db.get(User, claims.get("sub"))
