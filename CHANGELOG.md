@@ -2,7 +2,21 @@
 
 All notable development changes. Format loosely follows Keep a Changelog; versions are phase-gates.
 
-## [0.7.0] - Phase 7: Enterprise Readiness (partial) - 2026-11-14
+## [Unreleased] — Developer experience: one-click starter
+
+### Added
+- `start.bat` (Windows one-click starter): creates the backend virtual environment,
+  installs dependencies, seeds `backend\.env` from the example, starts the backend with
+  `uvicorn --reload` and the frontend with Vite HMR, and prints the URL. The script
+  auto-selects a free port when the preferred one is still held by the OS after a
+  force-stop. Modes: `start.bat`, `--update` (git pull + dependency sync first),
+  `--auto-update` (updater window polling git every 5 minutes; changed code is applied
+  live by --reload/HMR, dependencies reinstall only when requirements/package.json
+  change), `--stop`.
+- `scripts/auto_update.bat`: companion poller for `--auto-update`; states clearly when
+  no git remote is configured and still detects local commits.
+
+## [0.7.0] — Phase 7: Enterprise Readiness (partial) — 2026-11-14
 
 ### Added
 - **MFA (TOTP, RFC 6238, stdlib-only)**: `app/core/mfa.py` (secret generation, code

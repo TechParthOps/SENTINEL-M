@@ -31,6 +31,12 @@ for the full development report and release-readiness classification.
 
 ## Quick start (development)
 
+**One click (Windows):** double-click **`start.bat`** — it creates the virtual
+environment, installs dependencies, and starts the backend (auto-reload) and the
+frontend (hot reload). Variants: `start.bat --update` (pull latest code first),
+`start.bat --auto-update` (keeps pulling git every 5 min; servers pick up changes
+live), `start.bat --stop`. See [`docs/INSTALL.md`](docs/INSTALL.md).
+
 Prerequisites: Python 3.11+, Node.js 20+.
 
 ```powershell

@@ -2,7 +2,31 @@
 
 **Status:** Phase 7 partial · local-first deployment (no external services required)
 
-## Quick install (Windows / PowerShell)
+## Quick start (Windows) — one click
+
+```bat
+start.bat
+```
+
+That is all a user needs. The script:
+
+1. creates `backend\.venv` and installs backend/frontend dependencies on first run,
+2. copies `.env.example` to `backend\.env` if no environment file exists (edit it to
+   set `SENTINEL_SECRET_KEY`),
+3. starts the backend (`uvicorn --reload` → changes to Python code are applied
+   automatically) and the frontend (Vite dev server with hot reload),
+4. opens nothing itself — browse to **http://localhost:5173** and sign in.
+
+Variants:
+
+| Command | Effect |
+|---|---|
+| `start.bat` | start both servers with live reload |
+| `start.bat --update` | `git pull` the latest code, sync dependencies, then start |
+| `start.bat --auto-update` | also opens an updater window that pulls git every 5 minutes; changed code is picked up automatically by `--reload` / HMR |
+| `start.bat --stop` | stop the servers on the backend/dev ports |
+
+## Manual quick start (Windows / PowerShell)
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\install.ps1
