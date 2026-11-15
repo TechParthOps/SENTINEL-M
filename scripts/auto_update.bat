@@ -30,7 +30,7 @@ if errorlevel 1 (
 git -C "%ROOT%" pull --ff-only --quiet
 if errorlevel 1 (
     echo [warn] git pull failed - retrying in %INTERVAL%s
-    timeout /t %INTERVAL% /nobreak >nul
+    powershell -NoProfile -Command "Start-Sleep -Seconds %INTERVAL%"
     goto loop
 )
 for /f "delims=" %%r in ('git -C "%ROOT%" rev-parse HEAD') do set "NOW=%%r"
@@ -51,5 +51,5 @@ if defined PREV if not "!PREV!"=="!NOW!" (
 )
 
 echo !NOW!>"%LAST%"
-timeout /t %INTERVAL% /nobreak >nul
+powershell -NoProfile -Command "Start-Sleep -Seconds %INTERVAL%"
 goto loop

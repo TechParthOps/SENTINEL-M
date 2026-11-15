@@ -27,11 +27,16 @@ if /i "%~1"=="--stop"        set "MODE=stop"
 rem --------------------------------------------------------------- stop mode
 if "%MODE%"=="stop" (
     echo Stopping SENTINEL-M servers on ports %PORT% and 5173...
-    rem uvicorn --reload respawns its worker, so kill the process tree by command line
-    powershell -NoProfile -Command "Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*uvicorn*app.main:app*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }" 2>nul
-    powershell -NoProfile -Command "foreach ($p in @('%PORT%','5173')) { try { Get-NetTCPConnection -LocalPort $p -State Listen -ErrorAction Stop | Select-Object -Expand OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force } } catch {} }"
-    powershell -NoProfile -Command "Get-CimInstance Win32_Process -Filter \"Name='node.exe'\" | Where-Object { $_.CommandLine -like '*vite*' -and $_.CommandLine -like '*SENTINEL*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }" 2>nul
+    rem uvicorn --reload can respawn its worker: repeat the kill until no process remains
+    for %%x in (1 2 3) do (
+        powershell -NoProfile -Command "Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*uvicorn*app.main:app*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }" 2>nul
+        powershell -NoProfile -Command "foreach ($p in @('%PORT%','5173')) { try { Get-NetTCPConnection -LocalPort $p -State Listen -ErrorAction Stop | Select-Object -Expand OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue } } catch {} }"
+        powershell -NoProfile -Command "Start-Sleep -Milliseconds 1200"
+    )
+    powershell -NoProfile -Command "Get-CimInstance Win32_Process -Filter \"Name='node.exe'\" | Where-Object { $_.CommandLine -like '*vite*' -and $_.CommandLine -like '*SENTINEL*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }" 2>nul
     taskkill /fi "WINDOWTITLE eq SENTINEL-M Auto-Update*" /t /f >nul 2>&1
+    rem report what is still listening (Windows can keep a kernel socket briefly)
+    powershell -NoProfile -Command "foreach ($p in @('%PORT%','5173')) { if (Get-NetTCPConnection -LocalPort $p -State Listen -ErrorAction SilentlyContinue) { Write-Host 'note: port' $p 'is still held by the OS - it clears within a minute, and start.bat auto-selects the next free port' } }"
     echo Done.
     exit /b 0
 )
@@ -58,8 +63,13 @@ if not exist "%FRONTEND%\node_modules" (
 )
 if not exist "%BACKEND%\.env" (
     if exist "%BACKEND%\.env.example" (
-        echo [1/4] No backend\.env found - copying .env.example. Edit it to set SECRET_KEY.
-        copy /y "%BACKEND%\.env.example" "%BACKEND%\.env" >nul
+        echo [1/4] No backend\.env found - generating one with a random SECRET_KEY
+        for /f "usebackq tokens=*" %%k in (`python -c "import secrets;print(secrets.token_urlsafe(32))"`) do set "SECRET=%%k"
+        for /f "usebackq tokens=*" %%w in (`python -c "import secrets,string;print(''.join(secrets.choice(string.ascii_letters+string.digits) for _ in range(13))+'Aa1')"`) do set "SEEDPW=%%w"
+        python -c "import pathlib;p=pathlib.Path(r'%BACKEND%\.env');s=pathlib.Path(r'%BACKEND%\.env.example').read_text(encoding='utf-8');s=s.replace('SENTINEL_SECRET_KEY=','SENTINEL_SECRET_KEY=!SECRET!').replace('SENTINEL_SEED_ADMIN_PASSWORD=','SENTINEL_SEED_ADMIN_PASSWORD=!SEEDPW!');p.write_text(s,encoding='utf-8')"
+        echo [1/4] backend\.env created. Seed admin password for first login:
+        echo        admin / !SEEDPW!
+        echo        (change it after first login; it is also stored in backend\.env)
     ) else (
         echo [WARN ] No backend\.env found - a random secret is used for this session only.
     )
