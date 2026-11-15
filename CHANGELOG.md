@@ -2,6 +2,24 @@
 
 All notable development changes. Format loosely follows Keep a Changelog; versions are phase-gates.
 
+## [Unreleased] — Master-prompt audit recovery (2026-11-15)
+
+### Added
+- 3D office now visualizes **agent task lifecycle**: `agent.task_started`,
+  `agent.task_completed` and `investigation.status_changed` frames become live markers
+  in the Incident Response room (agent name, FAILED states, evidence counts), with a
+  running-task counter in the office header. Previously only investigation lifecycle
+  was rendered - the backend already published these events.
+- `docs/IMPLEMENTATION_MATRIX.md`: full requirement-to-implementation matrix with
+  evidence-based statuses (audit of the master prompt §6/§7 checklist).
+- `docs/RECOVERY_REPORT.md`: recovery record for this cycle.
+
+### Verified
+- Live: during a real investigation on a running server, agent task markers
+  (`alert_triage started` ... `synthesis done (N evidence)`, `investigation.completed`)
+  streamed into the office's live marker list over WS.
+- Backend pytest: **122/122 passed**; frontend vitest 7/7; `tsc -b` clean; build clean.
+
 ## [Unreleased] — First-launch account creation
 
 ### Changed

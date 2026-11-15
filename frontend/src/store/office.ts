@@ -146,11 +146,39 @@ export const useOffice = create<OfficeState>((set, get) => ({
           label: `incident: ${inc.title ?? "correlated"}`, severity: inc.severity_id ?? 3,
         });
       } else if (topic === "agents" && data) {
-        const ev = data as { type: string };
+        const ev = data as {
+          type: string;
+          agent?: string;
+          status?: string;
+          evidence_count?: number;
+        };
         if (ev.type === "investigation.created" || ev.type === "investigation.completed") {
           push({
             id: String(Date.now()) + ev.type, room: "incident",
             time: new Date().toISOString(), label: ev.type, severity: 3,
+          });
+        } else if (ev.type === "agent.task_started" || ev.type === "agent.task_completed") {
+          // real agent task lifecycle (backend publishes these per specialist step)
+          const running = ev.type === "agent.task_started" ? true : false;
+          set({ agentsRunning: Math.max(0, get().agentsRunning + (running ? 1 : -1)) });
+          const agent = ev.agent ?? "agent";
+          const done = ev.type === "agent.task_completed";
+          const failed = done && ev.status === "failed";
+          push({
+            id: String(Date.now()) + ev.type + agent, room: "incident",
+            time: new Date().toISOString(),
+            label: failed
+              ? `${agent} FAILED`
+              : done
+                ? `${agent} done (${ev.evidence_count ?? 0} evidence)`
+                : `${agent} started`,
+            severity: failed ? 5 : done ? 3 : 4,
+          });
+        } else if (ev.type === "investigation.status_changed") {
+          push({
+            id: String(Date.now()) + ev.type, room: "incident",
+            time: new Date().toISOString(),
+            label: `investigation ${ev.status ?? "running"}`, severity: 3,
           });
         }
       } else if (topic === "response" && data) {
@@ -179,7 +207,7 @@ export const useOffice = create<OfficeState>((set, get) => ({
   },
 
   async startReplay() {
-    // Replay REAL persisted alerts, oldest → newest, paused-capable. No synthetic frames.
+    // Replay REAL persisted alerts, oldest -> newest, paused-capable. No synthetic frames.
     try {
       const res = await api.get<{ alerts: { id: string; time: string; rule_id: string; rule_title: string; severity_id: number }[] }>(
         "/alerts?limit=200");

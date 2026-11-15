@@ -1,5 +1,5 @@
 /**
- * OfficeScene — R3F 3D virtual security-operations office (Phase 6).
+ * OfficeScene - R3F 3D virtual security-operations office (Phase 6).
  *
  * A realistic SOC environment: partitioned rooms with door gaps and glass
  * partitions, desks with monitors and chairs, wall signage, a central video
@@ -7,7 +7,7 @@
  *
  * Data honesty (ADR-008): every screen, beacon and marker is driven by REAL
  * backend numbers (REST room counts) and WS-confirmed event markers. The scene
- * is static — no animation, no simulated staff, no scripted attacks. The only
+ * is static - no animation, no simulated staff, no scripted attacks. The only
  * motion is the camera the operator controls.
  */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -58,7 +58,7 @@ function Wall({ width, position, rotationZ = 0, glass = false }: {
         <boxGeometry args={[width, WALL_H, WALL_T]} />
         <meshStandardMaterial color="#16222f" roughness={0.9} />
       </mesh>
-      {/* glass strip above the solid base — SOC open-plan look */}
+      {/* glass strip above the solid base - SOC open-plan look */}
       <mesh position={[0, WALL_H + 0.35, 0]}>
         <boxGeometry args={[width, 0.7, WALL_T * 0.6]} />
         <meshStandardMaterial

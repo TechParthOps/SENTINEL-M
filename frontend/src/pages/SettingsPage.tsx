@@ -141,7 +141,7 @@ export default function SettingsPage() {
         </div>
       </Card>
 
-      <Card title="Two-factor authentication (TOTP)" subtitle="RFC 6238 — authenticator app, no external service">
+      <Card title="Two-factor authentication (TOTP)" subtitle="RFC 6238 - authenticator app, no external service">
         {mfa.loading && !mfa.status ? (
           <Spinner />
         ) : (
@@ -175,7 +175,7 @@ export default function SettingsPage() {
                 <pre className="select-all rounded bg-sentinel-bg p-2 text-xs text-cyan-300">{mfa.enrollment.secret}</pre>
                 <p className="break-all text-[10px] text-slate-500">{mfa.enrollment.provisioning_uri}</p>
                 <p className="text-xs font-semibold text-red-300">
-                  2. Save these recovery codes now — shown once:
+                  2. Save these recovery codes now - shown once:
                 </p>
                 <pre className="select-all rounded bg-sentinel-bg p-2 text-xs text-amber-200">
                   {mfa.enrollment.recovery_codes.join("\n")}
@@ -199,7 +199,7 @@ export default function SettingsPage() {
 
             {mfa.status?.enabled && (
               <div className="space-y-2 rounded-lg border border-sentinel-border bg-sentinel-bg/60 p-3">
-                <p className="text-xs text-sentinel-muted">Disable MFA — requires your password AND a live code.</p>
+                <p className="text-xs text-sentinel-muted">Disable MFA - requires your password AND a live code.</p>
                 <div className="flex flex-wrap gap-2">
                   <input
                     type="password"
@@ -232,7 +232,7 @@ export default function SettingsPage() {
           <Spinner />
         )}
         <p className="mt-3 text-xs text-sentinel-muted">
-          Configuration uses <code>SENTINEL_*</code> environment variables — see{" "}
+          Configuration uses <code>SENTINEL_*</code> environment variables - see{" "}
           <code>backend/.env.example</code>. No secrets are stored in the browser or in source.
         </p>
       </Card>

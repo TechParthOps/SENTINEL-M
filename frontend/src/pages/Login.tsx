@@ -141,7 +141,7 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="mt-1 w-full rounded-lg border border-sentinel-border bg-sentinel-bg px-3 py-2 text-sm text-slate-100 outline-none focus:border-cyan-500/60"
-              placeholder="••••••••••"
+              placeholder="**********"
             />
           </label>
           {error && (

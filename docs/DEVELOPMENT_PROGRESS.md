@@ -40,8 +40,7 @@
 
 ## Test state (final for this phase of work)
 
-- Backend pytest: **117/117 passed** (agents, response, deception, aisec, multimodal,
-  identity, MFA ×5, performance ×2, system/coverage-sync tests).
+- Backend pytest: **122/122 passed** (adds 5 bootstrap/first-launch tests).
 - Frontend vitest: **7/7 passed**; `tsc -b` clean; production build clean
   (three.js exceeds the chunk-size advisory - documented, not an error).
 

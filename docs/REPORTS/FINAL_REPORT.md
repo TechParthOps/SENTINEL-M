@@ -89,8 +89,32 @@ packaged distribution.
 ## 9. Release-readiness classification
 
 **Functional beta / internal alpha** - full pipeline (ingest -> detect -> correlate ->
-investigate -> respond/deceive -> visualize) runs end-to-end locally with 117/117 tests
-and honest capability labeling. It is *not* production-ready: no TLS/reverse-proxy
-guidance, no SSO, response executors act on local state only, deception binds loopback
-by default, performance characterized only by regression smokes, and the deployment
-story is a local-first single node.
+investigate -> respond/deceive -> visualize) runs end-to-end locally with **122/122
+backend + 7/7 frontend tests** and honest capability labeling. It is *not*
+production-ready: no TLS/reverse-proxy guidance, no SSO, response executors act on
+local state only, deception binds loopback by default, performance characterized only
+by regression smokes, and the deployment story is a local-first single node.
+
+## 10. Master-prompt §14 final report (A-I)
+
+- **A. Recovery summary** - [`docs/RECOVERY_REPORT.md`](../RECOVERY_REPORT.md) (original
+  failure, root cause, method, files recovered; the 2026-11-15 audit closed the
+  agent-task-visualization gap in the 3D office).
+- **B. Development summary** - §2 above (phases 2-7) plus this recovery's office fix.
+- **C. Architecture summary** - §3 above; module table in
+  [`docs/ARCHITECTURE.md`](../ARCHITECTURE.md).
+- **D. Testing summary** - §4 above. Executed: backend 122/122, frontend 7/7, `tsc -b`,
+  production build, live HTTP + browser flows. Not executed: 3D pixel capture / pointer
+  raycasting in-session (hidden-tab rAF limitation, documented), external-service
+  integrations (no instances available).
+- **E. 3D environment summary** - §5 above: all 7 rooms, real-data screens/beacons/video
+  wall, agent task lifecycle markers (verified live), replay with pause/resume, 2D
+  fallback, honest failure display, WS reconnect.
+- **F. Installation summary** - §6 above and [`docs/INSTALL.md`](../INSTALL.md)
+  (`start.bat` one-click, first-launch account creation, MFA, backup, SBOM).
+- **G. Requirement matrix** - [`docs/IMPLEMENTATION_MATRIX.md`](../IMPLEMENTATION_MATRIX.md):
+  every master-prompt requirement with an evidence-based status; blocked items carry
+  their exact dependency.
+- **H. Remaining work** - §8 above (each with reason, files, dependency, next action in
+  the matrix and [`docs/REMAINING_WORK.md`](../REMAINING_WORK.md)).
+- **I. Release readiness** - §9 above: **Functional beta / internal alpha**.

@@ -6,6 +6,7 @@ import { formatTime } from "../lib/format";
 
 export default function VirtualOfficePage() {
   const connected = useOffice((s) => s.connected);
+  const agentsRunning = useOffice((s) => s.agentsRunning);
   const metrics = useOffice((s) => s.metrics);
   const markers = useOffice((s) => s.markers);
   const replay = useOffice((s) => s.replay);
@@ -42,7 +43,7 @@ export default function VirtualOfficePage() {
           <h1 className="text-xl font-semibold text-slate-100">3D Virtual Office</h1>
           <p className="text-sm text-sentinel-muted">
             Live digital twin of the security operation. Every room reflects real backend
-            telemetry — alerts, investigations, intel, deception — synced over the WebSocket
+            telemetry - alerts, investigations, intel, deception - synced over the WebSocket
             bus. Drag to orbit, scroll to zoom, click a room for detail.
           </p>
         </div>
@@ -51,6 +52,11 @@ export default function VirtualOfficePage() {
             ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-200"
             : "border-amber-500/40 bg-amber-500/15 text-amber-200"}>
             {connected ? "live sync active" : "connecting…"}
+          </Badge>
+          <Badge className={agentsRunning > 0
+            ? "border-cyan-500/40 bg-cyan-500/15 text-cyan-200"
+            : "border-slate-500/40 bg-slate-500/15 text-slate-300"}>
+            {agentsRunning > 0 ? `${agentsRunning} agent task(s) running` : "no agent task running"}
           </Badge>
           {replay.active ? (
             <>
@@ -70,7 +76,7 @@ export default function VirtualOfficePage() {
 
       {webglFailed && (
         <ErrorBox>
-          WebGL initialization failed — showing the 2D fallback below (same live data).
+          WebGL initialization failed - showing the 2D fallback below (same live data).
         </ErrorBox>
       )}
 
@@ -80,7 +86,7 @@ export default function VirtualOfficePage() {
             <div className="h-[440px] overflow-hidden rounded-lg border border-sentinel-border">
               {webglFailed ? (
                 <div className="flex h-full items-center justify-center text-sm text-slate-400">
-                  3D view unavailable — 2D fallback active below.
+                  3D view unavailable - 2D fallback active below.
                 </div>
               ) : (
                 <WebglGuard onFail={() => setWebglFailed(true)} onRoomClick={setSelectedRoom} />
