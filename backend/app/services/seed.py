@@ -7,9 +7,6 @@ they are NOT live systems and never appear as monitored assets without the badge
 from __future__ import annotations
 
 import logging
-import secrets
-import string
-from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
@@ -32,7 +29,14 @@ SAMPLE_ASSETS = [
 
 
 def seed_if_empty(db: Session | None = None) -> str:
-    """Idempotent. Returns a human message describing what happened."""
+    """Idempotent. Returns a human message describing what happened.
+
+    First-launch behavior: if no seed admin password is configured the platform
+    does NOT invent credentials — the first account (administrator or normal
+    user) is created by the operator in the web UI (see GET /auth/bootstrap-status).
+    Headless/CLI setups can still set SENTINEL_SEED_ADMIN_PASSWORD to bootstrap
+    an admin automatically.
+    """
     own = db is None
     if own:
         db = SessionLocal()
@@ -40,31 +44,25 @@ def seed_if_empty(db: Session | None = None) -> str:
         if db.query(User).count() > 0:
             return "already initialized"
         if settings.seed_admin_password:
-            admin_pw = settings.seed_admin_password
-            generated = False
-        else:
-            alphabet = string.ascii_letters + string.digits + "!@#"
-            admin_pw = "A!1" + "".join(secrets.choice(alphabet) for _ in range(9))
-            generated = True
-        db.add(
-            User(
-                username="admin",
-                password_hash=hash_password(admin_pw),
-                display_name="Administrator",
-                role="admin",
-                must_change_password=True,
+            db.add(
+                User(
+                    username="admin",
+                    password_hash=hash_password(settings.seed_admin_password),
+                    display_name="Administrator",
+                    role="admin",
+                    must_change_password=True,
+                )
             )
-        )
+            for asset in SAMPLE_ASSETS:
+                db.add(Asset(**asset, sample=True))
+            db.commit()
+            return "initialized (admin seeded, sample inventory loaded)"
+        # no seed password: leave users empty so the UI offers account creation
         for asset in SAMPLE_ASSETS:
             db.add(Asset(**asset, sample=True))
         db.commit()
-        if generated:
-            log.warning(
-                "=== INITIAL ADMIN CREDENTIALS (shown once) ===\n"
-                "username: admin\npassword: %s\n"
-                "Change it via the UI after first login.", admin_pw
-            )
-        return "initialized (sample inventory loaded)"
+        log.info("No seed admin password configured - first account is created in the UI")
+        return "bootstrap (sample inventory loaded; first account via UI)"
     finally:
         if own:
             db.close()

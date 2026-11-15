@@ -2,6 +2,28 @@
 
 All notable development changes. Format loosely follows Keep a Changelog; versions are phase-gates.
 
+## [Unreleased] — First-launch account creation
+
+### Changed
+- **No printed credentials.** On a fresh install the platform no longer invents an
+  admin password: the first launch shows an account-creation screen where the
+  operator chooses **Administrator** or **Normal user** and sets their own password.
+  Credentials live only in the local database. (`SENTINEL_SEED_ADMIN_PASSWORD`
+  still works for headless/CLI bootstrapping; see docs/INSTALL.md.)
+- `POST /auth/users` accepts any role for the **first** account only (bootstrap,
+  no admin token needed, audit-recorded); once any user exists the previous rules
+  apply unchanged. New public `GET /auth/bootstrap-status`.
+- Login page redirects an already-signed-in user to the app; after sign-out the
+  sign-up screen stays gone while accounts exist.
+- `start.bat` keeps its final window open (pause) with the URL and first-launch
+  instructions, so nothing disappears before it can be read.
+
+### Verification
+- Browser end-to-end: first-launch screen -> create Administrator -> auto sign-in ->
+  dashboard; sign out -> normal login (no sign-up) -> sign back in -> dashboard.
+- Backend pytest: **122/122 passed** (adds 5 bootstrap tests).
+- A logged-in session visiting `/login` is redirected to `/overview`.
+
 ## [Unreleased] — Developer experience: one-click starter
 
 ### Added

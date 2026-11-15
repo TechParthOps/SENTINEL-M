@@ -104,6 +104,19 @@ def change_password(
     return {"status": "changed"}
 
 
+@router.get("/bootstrap-status")
+def bootstrap_status(db: Session = Depends(get_db)):
+    """Public: has the first account been created yet? Drives the first-launch
+    account-choice screen in the UI. Never leaks whether specific users exist
+    beyond the count needed for that decision."""
+    count = db.query(User).count()
+    return {
+        "needs_setup": count == 0,
+        "user_count": count,
+        "allow_self_registration": settings.allow_self_registration,
+    }
+
+
 @router.get("/users", response_model=list[UserOut])
 def list_users(admin: AdminUser, db: Session = Depends(get_db)):
     audit.record("auth.users_list", actor=admin.username, details={})
@@ -115,13 +128,18 @@ def create_user(req: UserCreate, request: Request, db: Session = Depends(get_db)
     """Privileged creation requires an admin token. `viewer`/`analyst` self-registration
     is policy-controlled (settings.allow_self_registration) and audit-recorded.
 
+    First-launch exception: when the database has NO users yet, the caller may create
+    the very first account with any role (administrator or normal user) — that is the
+    bootstrap flow driven by GET /auth/bootstrap-status. After the first account
+    exists this exception never applies again.
+
     Rationale (see SECURITY.md): Phase 1 is a local-first tool where bootstrapping a
     small team without an invite flow is the pragmatic default; set
     SENTINEL_ALLOW_SELF_REGISTRATION=false to require admin for all creation.
-    Self-registration can never create admin accounts.
     """
     has_admin = _caller_is_admin(request)
-    if not has_admin:
+    bootstrapping = db.query(User).count() == 0
+    if not has_admin and not bootstrapping:
         if not settings.allow_self_registration:
             raise HTTPException(401, "authentication required")
         if req.role not in ("viewer", "analyst"):
@@ -140,7 +158,8 @@ def create_user(req: UserCreate, request: Request, db: Session = Depends(get_db)
     audit.record(
         "auth.user_create",
         actor="admin" if has_admin else "anon",
-        details={"username": user.username, "role": user.role, "privileged": has_admin},
+        details={"username": user.username, "role": user.role,
+                 "privileged": has_admin, "bootstrap": bootstrapping},
     )
     return user
 

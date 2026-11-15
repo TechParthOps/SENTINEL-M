@@ -59,9 +59,9 @@ cd backend && python -m pytest -q
 cd frontend && npm test
 ```
 
-First run creates `backend/data/sentinel.db`, seeds an initial administrator, and prints the
-generated credentials to the server log (shown once). Default credentials are **forced to be
-changed** on first login (Phase 1: the seed log is the credential source of truth).
+First run creates `backend/data/sentinel.db` and shows a **first-launch screen**: create
+the first account (Administrator or Normal user) with a password you choose — nothing is
+printed or emailed. After that, every launch is a normal sign-in.
 
 ## Documentation
 

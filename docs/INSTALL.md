@@ -54,9 +54,16 @@ npm run dev       # dev server, proxies /api and /ws to the backend (VITE_API_TA
 # or:  npm run preview  (serves the production build)
 ```
 
-Open `http://localhost:5173` and sign in with the seed admin password printed into
-`backend/.env` at install time. **Change the password on first login** (Settings page);
-the backend also flags insecure default secrets loudly in the startup log.
+Open `http://localhost:5173`. On first launch the page asks you to **create the first
+account** — Administrator (full access: response actions, users, deception) or Normal user
+(read-only) — with a password you choose. Nothing is printed or emailed; credentials live
+only in the local database, and the sign-up screen is never shown again while any account
+exists. **Change the password on first login** if you want (Settings page); the backend
+also flags insecure default secrets loudly in the startup log.
+
+Headless / CLI installs can still bootstrap an admin automatically by setting
+`SENTINEL_SEED_ADMIN_PASSWORD` in `backend/.env` before the first start (the seeded
+account is created with `must_change_password=True`).
 
 ## Configuration (`SENTINEL_*` environment variables)
 

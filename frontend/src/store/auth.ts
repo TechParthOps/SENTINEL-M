@@ -17,6 +17,15 @@ interface AuthState {
   /** Phase 7: when the server answers a login with mfa_required, the step-up token
    * is kept here so the login form can collect the second factor. */
   mfaToken: string | null;
+  /** First-launch bootstrap: null = unknown, true = no accounts exist yet. */
+  needsSetup: boolean | null;
+  checkBootstrap: () => Promise<void>;
+  register: (account: {
+    username: string;
+    display_name: string;
+    password: string;
+    role: "admin" | "viewer";
+  }) => Promise<boolean>;
   login: (username: string, password: string) => Promise<boolean>;
   verifyMfa: (code: string, recoveryCode?: string) => Promise<boolean>;
   clearMfa: () => void;
@@ -29,6 +38,28 @@ export const useAuth = create<AuthState>((set, get) => ({
   loading: false,
   error: null,
   mfaToken: null,
+  needsSetup: null,
+
+  async checkBootstrap() {
+    try {
+      const res = await api.get<{ needs_setup: boolean }>("/auth/bootstrap-status");
+      set({ needsSetup: res.needs_setup });
+    } catch {
+      set({ needsSetup: false }); // fail closed: show the normal login form
+    }
+  },
+
+  async register({ username, display_name, password, role }) {
+    set({ loading: true, error: null });
+    try {
+      await api.post("/auth/users", { username, password, display_name, role });
+      // first account created - sign straight in with it
+      return await get().login(username, password);
+    } catch (e) {
+      set({ loading: false, error: e instanceof Error ? e.message : "registration failed" });
+      return false;
+    }
+  },
   async login(username, password) {
     set({ loading: true, error: null, mfaToken: null });
     try {
@@ -70,7 +101,7 @@ export const useAuth = create<AuthState>((set, get) => ({
   },
   logout() {
     setToken(null);
-    set({ user: null });
+    set({ user: null, needsSetup: null, mfaToken: null, error: null });
   },
   async restore() {
     if (!getToken()) return;

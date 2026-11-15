@@ -65,11 +65,9 @@ if not exist "%BACKEND%\.env" (
     if exist "%BACKEND%\.env.example" (
         echo [1/4] No backend\.env found - generating one with a random SECRET_KEY
         for /f "usebackq tokens=*" %%k in (`python -c "import secrets;print(secrets.token_urlsafe(32))"`) do set "SECRET=%%k"
-        for /f "usebackq tokens=*" %%w in (`python -c "import secrets,string;print(''.join(secrets.choice(string.ascii_letters+string.digits) for _ in range(13))+'Aa1')"`) do set "SEEDPW=%%w"
-        python -c "import pathlib;p=pathlib.Path(r'%BACKEND%\.env');s=pathlib.Path(r'%BACKEND%\.env.example').read_text(encoding='utf-8');s=s.replace('SENTINEL_SECRET_KEY=','SENTINEL_SECRET_KEY=!SECRET!').replace('SENTINEL_SEED_ADMIN_PASSWORD=','SENTINEL_SEED_ADMIN_PASSWORD=!SEEDPW!');p.write_text(s,encoding='utf-8')"
-        echo [1/4] backend\.env created. Seed admin password for first login:
-        echo        admin / !SEEDPW!
-        echo        (change it after first login; it is also stored in backend\.env)
+        rem no seed password: the first account is created by you in the web UI
+        python -c "import pathlib;p=pathlib.Path(r'%BACKEND%\.env');s=pathlib.Path(r'%BACKEND%\.env.example').read_text(encoding='utf-8');s=s.replace('SENTINEL_SECRET_KEY=','SENTINEL_SECRET_KEY=!SECRET!');p.write_text(s,encoding='utf-8')"
+        echo [1/4] backend\.env created with a random secret key.
     ) else (
         echo [WARN ] No backend\.env found - a random secret is used for this session only.
     )
@@ -115,5 +113,21 @@ if "%MODE%"=="auto-update" (
     echo The updater window pulls changes; uvicorn --reload and Vite HMR apply them live.
 )
 
-echo Done. Keep the new windows open to run the platform.
+echo.
+echo ============================================================
+echo   SENTINEL-M is starting.
+echo ============================================================
+echo   Open:        http://localhost:5173
+echo   Backend:     http://127.0.0.1:%PORT%  (API base: /api/v1)
+echo.
+echo   FIRST LAUNCH: the web page asks you to create the first
+echo   account (Administrator or Normal user). No password is
+echo   printed anywhere - you choose it yourself.
+echo.
+echo   Keep the "SENTINEL-M Backend" and "SENTINEL-M Frontend"
+echo   windows open while using the platform. This window can be
+echo   closed - the servers keep running.
+echo ============================================================
+echo.
+pause
 exit /b 0
