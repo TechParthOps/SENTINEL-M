@@ -57,9 +57,14 @@ npm run dev       # dev server, proxies /api and /ws to the backend (VITE_API_TA
 Open `http://localhost:5173`. On first launch the page asks you to **create the first
 account** — Administrator (full access: response actions, users, deception) or Normal user
 (read-only) — with a password you choose. Nothing is printed or emailed; credentials live
-only in the local database, and the sign-up screen is never shown again while any account
-exists. **Change the password on first login** if you want (Settings page); the backend
-also flags insecure default secrets loudly in the startup log.
+only in the local database.
+
+After that, the login screen shows **both options**: **Sign in** (existing accounts) and
+**Create one** (self-registration as Normal user or Analyst — Administrator accounts
+require an existing administrator). Set `SENTINEL_ALLOW_SELF_REGISTRATION=false` to hide
+the sign-up option. Sessions last **24 hours** and survive browser restarts; all detected
+activity (events, alerts, incidents) is persisted in the database and visible on the
+dashboard after every sign-in.
 
 Headless / CLI installs can still bootstrap an admin automatically by setting
 `SENTINEL_SEED_ADMIN_PASSWORD` in `backend/.env` before the first start (the seeded

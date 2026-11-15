@@ -23,7 +23,7 @@ class Settings(BaseSettings):
 
     # Security — operator MUST set SENTINEL_SECRET_KEY in real deployments
     secret_key: str = "insecure-development-key-do-not-use"
-    token_ttl_minutes: int = 480
+    token_ttl_minutes: int = 1440  # 24h session: operator stays signed in across restarts
     allow_self_registration: bool = True  # non-admin roles may self-register (see SECURITY.md)
     ingest_token: str = ""  # optional X-Ingest-Token for telemetry collectors
 

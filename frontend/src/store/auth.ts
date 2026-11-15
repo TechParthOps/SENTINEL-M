@@ -19,12 +19,14 @@ interface AuthState {
   mfaToken: string | null;
   /** First-launch bootstrap: null = unknown, true = no accounts exist yet. */
   needsSetup: boolean | null;
+  /** Server policy: non-admin self-registration allowed? */
+  allowSelfRegistration: boolean;
   checkBootstrap: () => Promise<void>;
   register: (account: {
     username: string;
     display_name: string;
     password: string;
-    role: "admin" | "viewer";
+    role: "admin" | "analyst" | "viewer";
   }) => Promise<boolean>;
   login: (username: string, password: string) => Promise<boolean>;
   verifyMfa: (code: string, recoveryCode?: string) => Promise<boolean>;
@@ -39,11 +41,14 @@ export const useAuth = create<AuthState>((set, get) => ({
   error: null,
   mfaToken: null,
   needsSetup: null,
+  allowSelfRegistration: true,
 
   async checkBootstrap() {
     try {
-      const res = await api.get<{ needs_setup: boolean }>("/auth/bootstrap-status");
-      set({ needsSetup: res.needs_setup });
+      const res = await api.get<{ needs_setup: boolean; allow_self_registration: boolean }>(
+        "/auth/bootstrap-status",
+      );
+      set({ needsSetup: res.needs_setup, allowSelfRegistration: res.allow_self_registration });
     } catch {
       set({ needsSetup: false }); // fail closed: show the normal login form
     }

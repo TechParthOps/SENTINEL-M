@@ -61,7 +61,8 @@ cd frontend && npm test
 
 First run creates `backend/data/sentinel.db` and shows a **first-launch screen**: create
 the first account (Administrator or Normal user) with a password you choose — nothing is
-printed or emailed. After that, every launch is a normal sign-in.
+printed or emailed. After that, the login screen offers **both** Sign in and Create
+account; sessions last 24 hours and all detected activity stays on your dashboard.
 
 ## Documentation
 

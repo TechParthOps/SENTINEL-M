@@ -2,6 +2,36 @@
 
 All notable development changes. Format loosely follows Keep a Changelog; versions are phase-gates.
 
+## [Unreleased] — Sign up + sign in, 24-hour sessions, persisted dashboard (2026-11-15)
+
+### Added
+- The login screen offers **both options**: "Sign in" for existing accounts and
+  "Create one" for self-registration (Normal user / Analyst role; honest note that
+  Administrator accounts require an existing admin or the first launch). When the
+  instance disables self-registration the option is hidden with an explanatory note.
+- **24-hour sessions**: JWT TTL is now 1440 minutes (verified from token claims), so
+  the operator stays signed in across browser restarts; the session token is kept in
+  the browser's local storage and renewed on each sign-in.
+- Detected activity is **persisted server-side** (SQLite), so after sign-out and
+  sign-in the dashboard shows the same events, alerts and incidents — verified live
+  by re-logging in and reading `/stats/overview` (11 events / 2 alerts / 2 incidents).
+
+### Fixed
+- **Startup crash on an odd-but-valid database**: `seed_if_empty` raised
+  `IntegrityError: UNIQUE constraint failed: assets.hostname` (application failed to
+  boot, every API call 500) when the database held the sample inventory with zero
+  users — e.g. after a partially seeded file or a stale-instance race. Seeding is now
+  idempotent per row and never aborts startup. Reproduced on the exact failing state
+  (0 users / 6 assets) and verified to boot cleanly afterwards.
+
+### Verification
+- Browser: login screen shows Sign in + "Create one"; sign-up screen renders role
+  choice and creates an analyst account end-to-end.
+- REST: first-launch admin, token TTL = 24 h, dashboard counts identical before and
+  after re-login.
+- Backend pytest: **124/124 passed** (adds session-TTL + token-expiry tests).
+  Frontend: vitest 7/7, tsc clean, build clean.
+
 ## [Unreleased] — Master-prompt audit recovery (2026-11-15)
 
 ### Added

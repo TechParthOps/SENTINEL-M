@@ -14,6 +14,8 @@ verification, **D** = documented contract (API.md / ARCHITECTURE.md / matrix).
 | C1 | Backend API | Implemented and tested | FastAPI, 19 routers, 122 pytest, L |
 | C2 | Frontend application | Implemented and tested | 21 routes + 3D office, tsc/vitest/build, L |
 | C3 | Authentication (JWT + PBKDF2, stdlib-only) | Implemented and tested | `app/core/security.py`, T (test_auth paths), L |
+| C3b | Self-service sign-up + sign-in choice on the login screen | Implemented and tested | L (browser: both options render; analyst created end-to-end) |
+| C3c | 24-hour session (persisted across browser restarts) | Implemented and tested | `token_ttl_minutes=1440` asserted by T; token claims verified L |
 | C4 | RBAC (viewer/analyst/admin per-route) | Implemented and tested | T, L (401/403 verified over HTTP) |
 | C5 | MFA (TOTP RFC 6238 + single-use recovery codes) | Implemented and tested | `app/core/mfa.py`, T ×5, L (`scripts/mfa_smoke.ps1`) |
 | C6 | Asset inventory (manual + auto-registration) | Implemented and tested | T, L |
@@ -21,6 +23,7 @@ verification, **D** = documented contract (API.md / ARCHITECTURE.md / matrix).
 | C8 | Event ingestion gateway | Implemented and tested | T, L (53-event batch) |
 | C9 | OCSF-aligned normalization | Implemented and tested | T |
 | C10 | Event storage (SQLite WAL) | Implemented and tested | T, backup tool L |
+| C10b | Startup seeding idempotent (no boot crash on odd-but-valid DBs) | Implemented and tested | regressed-and-fixed: IntegrityError on assets reproduced, boot verified after fix |
 | C11 | WebSocket streaming | Implemented and tested | T (test_ws), L (live markers arrived < 1s) |
 | C12 | Audit logs (hash-chained) | Implemented and tested | T, L |
 | C13 | System health registry | Implemented and tested | T, L (14 modules ok) |
@@ -173,6 +176,11 @@ verification, **D** = documented contract (API.md / ARCHITECTURE.md / matrix).
 Navigation, forms, tables, search/filter (hunt), error messages, loading/empty states,
 role enforcement, 3D click-to-inspect, responsive layout: **Implemented and tested**
 (vitest + tsc + live browser session; office picking verified when frames flow).
+
+| Requirement | Status | Evidence |
+|---|---|---|
+| Sign in AND sign-up options offered by requirement | Implemented and tested | L (browser: toggle + role choice + account created) |
+| Dashboard metrics sourced from backend, persisted across sessions | Implemented and tested | L (`/stats/overview` identical before/after re-login: 11 events / 2 alerts / 2 incidents) |
 
 ## Installation / enterprise (§11 P7)
 

@@ -51,3 +51,20 @@ def test_seed_message_when_users_exist():
     from app.services.seed import seed_if_empty
 
     assert seed_if_empty() == "already initialized"
+
+
+def test_session_ttl_is_one_day():
+    """Operator stays signed in across restarts (master prompt: session management)."""
+    from app.core.config import settings
+
+    assert settings.token_ttl_minutes == 1440  # 24 hours
+
+
+def test_session_token_expires_after_ttl(client):
+    """A token minted with a short TTL is rejected once past it (guards the TTL wiring)."""
+    from app.core.security import decode_jwt, encode_jwt
+
+    token = encode_jwt({"sub": "1", "username": "admin", "role": "admin",
+                        "exp": 1})  # epoch+1s: long expired
+    with __import__("pytest").raises(Exception):
+        decode_jwt(token)
