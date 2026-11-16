@@ -57,10 +57,10 @@ if not exist "%PYEXE%" (
     echo [1/4] Creating backend virtual environment...
     python -m venv "%BACKEND%\.venv" || (echo [ERROR] could not create the virtual environment. & exit /b 1)
 )
-if not exist "%BACKEND%\.venv\Lib\site-packages\fastapi" (
-    echo [1/4] Installing backend dependencies...
-    "%PYEXE%" -m pip install --quiet --disable-pip-version-check -r "%BACKEND%\requirements.txt" || (echo [ERROR] backend dependency install failed. & exit /b 1)
-)
+rem always sync dependencies: pip skips what is already satisfied, so this is
+rem fast on later launches and picks up newly added requirements automatically
+echo [1/4] Installing backend dependencies (existing ones are skipped)...
+"%PYEXE%" -m pip install --quiet --disable-pip-version-check -r "%BACKEND%\requirements.txt" || (echo [ERROR] backend dependency install failed. & exit /b 1)
 if not exist "%FRONTEND%\node_modules" (
     echo [1/4] Installing frontend dependencies...
     pushd "%FRONTEND%" && call npm install --silent && popd || (echo [ERROR] npm install failed. & exit /b 1)
@@ -123,6 +123,11 @@ echo   SENTINEL-M is starting.
 echo ============================================================
 echo   Web app:     http://localhost:5173
 echo   Backend:     http://127.0.0.1:%PORT%  (API base: /api/v1)
+echo.
+echo   File analysis: Malware Analysis / Multimodal Forensics accept
+echo   files of ANY size (streamed upload, no size cap). Files are
+echo   analyzed in fixed-size chunks on disk - never fully loaded
+echo   into memory and never stored.
 echo.
 echo   FIRST LAUNCH: the web page asks you to create the first
 echo   account (Administrator or Normal user). No password is

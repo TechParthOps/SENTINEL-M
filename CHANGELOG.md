@@ -2,6 +2,39 @@
 
 All notable development changes. Format loosely follows Keep a Changelog; versions are phase-gates.
 
+## [Unreleased] - Unlimited streamed file analysis (2026-11-16)
+
+### Fixed
+- **Browser "Aw, Snap! Out of Memory" on file analysis** (Malware Analysis and
+  Multimodal Forensics): the pages used to read the whole uploaded file into JS
+  memory, spread every byte into `String.fromCharCode(...)` and embed a base64
+  blob in a JSON body — any real EXE/media file killed the tab before the request
+  was even sent. Both pages now hand the `File` to `FormData` and the browser
+  streams it as `multipart/form-data`; nothing is buffered in the browser.
+- **Backend engines reworked to stream from disk** (`app/malware/engine.py`,
+  `app/multimodal/*`): hashing, entropy, PE section entropies, string/IOC
+  extraction, archive inspection and document scans all read fixed-size chunks
+  from a seekable file object, so memory stays bounded at any file size.
+- **Removed the quadratic regex blow-up** in string extraction (the email regex
+  retried at every position of long base64-like runs); email extraction now
+  jumps between `@` anchors — a 2 GB worst-case file no longer stalls the engine.
+- **Multimodal dependencies (`numpy`, `Pillow`, `opencv-python`) were missing
+  from requirements.txt** — media pipelines silently degraded to "decode failed";
+  they are now installed properly.
+
+### Changed
+- **File-size caps removed**: the 10 MiB malware cap and 20 MB media cap are gone
+  by design (uploads are streamed; there is no maximum file size). API contract
+  for `POST /malware/analyze` and `POST /media/analyze` switched from JSON
+  base64 to multipart `file` uploads (see docs/API.md).
+- **Sample data retired**: `intel-feeds/sample-threat-feed.json` (the
+  "sample-fixture" demo bundle) was removed; indicators imported from it are
+  purged automatically on feed load. The platform ships with zero indicators —
+  import real STIX 2.1 bundles into `intel-feeds/` and click "Reload feeds".
+- `start.bat` now always syncs backend dependencies from requirements.txt
+  (pip skips what is already installed) and documents the unlimited-file-analysis
+  capability.
+
 ## [Unreleased] - Integrations / Forensics / Reports pages, readable health (2026-11-16)
 
 ### Added

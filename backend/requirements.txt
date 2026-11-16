@@ -1,7 +1,13 @@
 fastapi==0.141.1
+python-multipart==0.0.20
 uvicorn[standard]==0.53.0
 SQLAlchemy==2.1.6
 pydantic==2.13.5
 pydantic-settings==2.16.1
 httpx==0.28.1
 pytest==8.4.2
+
+# multimodal forensics pipelines (image/audio/video/document)
+numpy>=2.0
+pillow>=11.0
+opencv-python>=4.10

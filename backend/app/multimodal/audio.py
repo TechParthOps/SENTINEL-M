@@ -8,12 +8,15 @@ files are reported as `unsupported` rather than guessed at.
 from __future__ import annotations
 
 
-def analyze_audio(data: bytes, filename: str = "") -> dict:
+def analyze_audio(path: str, filename: str = "") -> dict:
+    """Analyze a WAV/PCM file on disk. Only a bounded window (5 minutes) of
+    samples is decoded into memory."""
     result: dict = {"kind": "audio", "filename": filename, "status": "unsupported", "findings": []}
 
     # quick container sniff
-    head = data[:16]
-    if head.startswith(b"ID3") or data[:2] in (b"\xff\xfb", b"\xff\xf3", b"\xff\xf2"):
+    with open(path, "rb") as probe:
+        head = probe.read(16)
+    if head.startswith(b"ID3") or head[:2] in (b"\xff\xfb", b"\xff\xf3", b"\xff\xf2"):
         result["error"] = "MP3 container detected; MP3 decoding is not bundled (WAV PCM only)"
         result["limitations"] = ["Provide WAV (PCM) for analysis in this build."]
         return result
@@ -21,15 +24,14 @@ def analyze_audio(data: bytes, filename: str = "") -> dict:
         result["error"] = "OGG container detected; OGG decoding is not bundled (WAV PCM only)"
         result["limitations"] = ["Provide WAV (PCM) for analysis in this build."]
         return result
-    if not head.startswith(b"RIFF") or data[8:12] != b"WAVE":
+    if not head.startswith(b"RIFF") or head[8:12] != b"WAVE":
         result["error"] = "not a RIFF/WAVE stream"
         return result
 
-    import io
     import wave
 
     try:
-        wf = wave.open(io.BytesIO(data))
+        wf = wave.open(path)
         channels, rate, duration = wf.getnchannels(), wf.getframerate(), wf.getnframes() / wf.getframerate()
         if rate == 0 or duration <= 0:
             raise ValueError("empty or zero-rate audio")

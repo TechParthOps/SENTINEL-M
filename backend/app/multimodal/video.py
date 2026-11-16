@@ -9,15 +9,12 @@ honestly as `unsupported`.
 from __future__ import annotations
 
 
-def analyze_video(data: bytes, filename: str = "") -> dict:
+def analyze_video(path: str, filename: str = "") -> dict:
+    """Analyze a video file on disk (path-based: OpenCV reads the file directly,
+    only sampled frames are held in memory). No extra temp copy is made."""
     result: dict = {"kind": "video", "filename": filename, "status": "unsupported", "findings": []}
 
-    import tempfile
-    from pathlib import Path
-
-    with tempfile.NamedTemporaryFile(suffix=Path(filename or "video.mp4").suffix or ".mp4", delete=False) as tf:
-        tf.write(data)
-        tmp_path = tf.name
+    tmp_path = path
 
     try:
         import cv2
@@ -87,10 +84,3 @@ def analyze_video(data: bytes, filename: str = "") -> dict:
     except Exception as exc:
         result["error"] = f"video analysis failed: {type(exc).__name__}"
         return result
-    finally:
-        import os
-
-        try:
-            os.unlink(tmp_path)
-        except OSError:
-            pass

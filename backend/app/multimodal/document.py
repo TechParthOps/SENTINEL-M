@@ -26,33 +26,71 @@ OFFICE_DANGEROUS_PARTS = [
 ]
 
 
-def analyze_document(data: bytes, filename: str = "") -> dict:
+def analyze_document(path: str, filename: str = "") -> dict:
+    """Analyze a document file on disk with bounded memory: PDF tokens are
+    scanned in fixed-size streaming chunks; OOXML is inspected via the zip
+    central directory without decompressing parts wholesale."""
     result: dict = {"kind": "document", "filename": filename, "status": "unsupported", "findings": []}
 
-    if data[:5] == b"%PDF-":
-        return _pdf(data, result, filename)
-    if data[:4] == b"PK\x03\x04":
-        return _office_zip(data, result, filename)
+    with open(path, "rb") as probe:
+        head = probe.read(8)
+    if head[:5] == b"%PDF-":
+        return _pdf(path, result, filename)
+    if head[:4] == b"PK\x03\x04":
+        return _office_zip(path, result, filename)
     result["error"] = "unsupported document type (PDF and OOXML zip formats only)"
     return result
 
 
-def _pdf(data: bytes, result: dict, filename: str) -> dict:
+PDF_SCAN_CHUNK = 1024 * 1024
+PDF_SCAN_OVERLAP = 16  # longest token is 12 bytes — re-scan a small tail per chunk
+
+
+def _pdf(path: str, result: dict, filename: str) -> dict:
     result["status"] = "analyzed"
-    result["metadata"] = {"format": "pdf", "version": data[5:9].decode("ascii", "replace")}
-    pages = data.count(b"/Type /Page") or data.count(b"/Type/Page")
-    result["metadata"]["page_count_rough"] = pages
+    with open(path, "rb") as fh:
+        head = fh.read(9)
+    result["metadata"] = {"format": "pdf", "version": head[5:9].decode("ascii", "replace")}
+
+    found: dict[str, bool] = {}
+    page_count = 0
+    prev_tail = b""
+    with open(path, "rb") as fh:
+        while True:
+            chunk = fh.read(PDF_SCAN_CHUNK)
+            if not chunk:
+                break
+            buf = prev_tail + chunk
+            overlap = len(prev_tail)
+            prev_tail = buf[-PDF_SCAN_OVERLAP:]
+            page_count += chunk.count(b"/Type /Page") + chunk.count(b"/Type/Page")
+            for token, _category, _conf in PDF_TOKENS:
+                if token in found:
+                    continue
+                idx = buf.find(token)
+                while idx != -1:
+                    if idx + len(token) > overlap:  # hit reaches into the fresh part of this chunk
+                        # /AA and /JS are extremely short — require word-ish boundaries
+                        # to cut false positives
+                        if token in (b"/JS", b"/AA") and not re.match(
+                            re.escape(token) + rb"[A-Za-z]{0,2}[^A-Za-z]", buf[idx:idx + len(token) + 3]
+                        ):
+                            idx = buf.find(token, idx + 1)
+                            continue
+                        found[token] = True
+                        break
+                    idx = buf.find(token, idx + 1)
+    result["metadata"]["page_count_rough"] = page_count
+
     for token, category, conf in PDF_TOKENS:
-        if token in data:
-            # /AA and /JS are extremely short — require word-ish boundaries to cut false positives
-            if token in (b"/JS", b"/AA") and not re.search(re.escape(token) + rb"[A-Za-z]{0,2}[^A-Za-z]", data):
-                continue
-            result["findings"].append({
-                "category": category,
-                "confidence": conf,
-                "evidence": f"PDF object {token.decode('ascii', 'replace')} present",
-            })
-    if b"/AcroForm" in data and (b"/JavaScript" in data or b"/JS" in data):
+        if not found.get(token):
+            continue
+        result["findings"].append({
+            "category": category,
+            "confidence": conf,
+            "evidence": f"PDF object {token.decode('ascii', 'replace')} present",
+        })
+    if found.get(b"/AcroForm") and (found.get(b"/JavaScript") or found.get(b"/JS")):
         result["findings"].append({
             "category": "pdf_form_with_scripts",
             "confidence": 0.8,
@@ -65,12 +103,10 @@ def _pdf(data: bytes, result: dict, filename: str) -> dict:
     return result
 
 
-def _office_zip(data: bytes, result: dict, filename: str) -> dict:
-    import io
-
+def _office_zip(path: str, result: dict, filename: str) -> dict:
     result["status"] = "analyzed"
     try:
-        zf = zipfile.ZipFile(io.BytesIO(data))
+        zf = zipfile.ZipFile(path)
         names = zf.namelist()
     except Exception as exc:
         result["error"] = f"zip open failed: {type(exc).__name__}"
@@ -84,16 +120,18 @@ def _office_zip(data: bytes, result: dict, filename: str) -> dict:
                 "confidence": conf,
                 "evidence": f"OOXML part(s): {hit[:3]}",
             })
-    # macro detection overlaps the malware engine's Office check but works on raw bytes
+    # macro detection overlaps the malware engine's Office check but works on the zip stream
     for name in names:
         if name.endswith(".bin"):
             try:
-                blob = zf.read(name)
-                if b"\x00" in blob[:16] and len(blob) > 64:
+                info = zf.getinfo(name)
+                with zf.open(name) as fh:
+                    blob = fh.read(64)
+                if b"\x00" in blob[:16] and info.file_size > 64:
                     result["findings"].append({
                         "category": "office_binary_part",
                         "confidence": 0.4,
-                        "evidence": f"binary part {name} ({len(blob)} bytes) — review via Malware Analysis",
+                        "evidence": f"binary part {name} ({info.file_size} bytes) — review via Malware Analysis",
                     })
             except Exception:
                 pass
@@ -101,4 +139,5 @@ def _office_zip(data: bytes, result: dict, filename: str) -> dict:
         "OOXML structural scan only; legacy OLE2 (.doc/.xls) documents route to the Malware engine.",
         "OCR is not bundled in this build.",
     ]
+    zf.close()
     return result

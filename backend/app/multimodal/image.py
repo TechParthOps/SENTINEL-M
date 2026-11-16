@@ -19,15 +19,16 @@ GENAI_SOFTWARE_MARKERS = [
 SHORTENERS = ("bit.ly", "t.co", "goo.gl", "tinyurl.com", "is.gd", "cutt.ly", "rb.gy", "ow.ly")
 
 
-def analyze_image(data: bytes, filename: str = "") -> dict:
+def analyze_image(path: str, filename: str = "") -> dict:
+    """Analyze an image file on disk. Pixels are decoded lazily by PIL; the raw
+    file is never fully buffered."""
     result: dict = {"kind": "image", "filename": filename, "status": "analyzed"}
     findings: list[dict] = []
 
     try:
         from PIL import Image, ImageChops
-        import io
 
-        img = Image.open(io.BytesIO(data))
+        img = Image.open(path)
         img.load()
     except Exception as exc:
         result["status"] = "unsupported"
@@ -85,7 +86,7 @@ def analyze_image(data: bytes, filename: str = "") -> dict:
         pass
 
     # QR detection + payload analysis
-    qr = _qr_analysis(data)
+    qr = _qr_analysis(path)
     result["qr"] = qr
     for f in qr.get("findings", []):
         findings.append(f)
@@ -117,14 +118,12 @@ def _ela_lite(img) -> dict:
     }
 
 
-def _qr_analysis(data: bytes) -> dict:
+def _qr_analysis(path: str) -> dict:
     out: dict = {"found": False, "findings": []}
     try:
         import cv2
-        import numpy as np
 
-        arr = np.frombuffer(data, dtype=np.uint8)
-        img = cv2.imdecode(arr, cv2.IMREAD_GRAYSCALE)
+        img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
         if img is None:
             return out
         detector = cv2.QRCodeDetector()

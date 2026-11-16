@@ -77,16 +77,12 @@ export default function MultimodalPage() {
     setBusy(true);
     setError(null);
     try {
-      const buffer = await file.arrayBuffer();
-      let binary = "";
-      const bytes = new Uint8Array(buffer);
-      for (let i = 0; i < bytes.length; i += 8192) {
-        binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
-      }
-      const res = await api.post<AnalysisResult>("/media/analyze", {
-        filename: file.name,
-        content_base64: btoa(binary),
-      });
+      // The File object is handed to FormData directly: the browser streams it
+      // from disk as multipart/form-data. Nothing is read into JS memory and
+      // there is no file-size limit.
+      const form = new FormData();
+      form.append("file", file, file.name);
+      const res = await api.postForm<AnalysisResult>("/media/analyze", form);
       setResult(res);
       await load();
     } catch (e) {
@@ -110,7 +106,7 @@ export default function MultimodalPage() {
       {error && <ErrorBox>{error}</ErrorBox>}
 
       {canSubmit && (
-        <Card title="Submit media for analysis" subtitle="Max 20 MB · base64 over the authenticated API">
+        <Card title="Submit media for analysis" subtitle="Any file size — streamed multipart upload, never buffered in the browser">
           <div className="flex flex-wrap items-center gap-3">
             <input
               type="file"

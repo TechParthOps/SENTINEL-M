@@ -96,7 +96,7 @@ Incident fields: `attack_chain` (≥2 distinct techniques), `entity_keys`, `atta
 
 | Method | Path | Role | Notes |
 |---|---|---|---|
-| POST | `/media/analyze` | analyst+ | `{filename, content_base64}` -> kind-routed analysis (image/audio/video/document); bytes never stored |
+| POST | `/media/analyze` | analyst+ | multipart `file` upload (any size, streamed) -> kind-routed analysis (image/audio/video/document); bytes never stored |
 | GET | `/media/analyses` | any | stored analysis records |
 | GET | `/media/analyses/{id}` | any | one record |
 
@@ -177,7 +177,7 @@ normal endpoint (401) - they only work at `/auth/mfa/verify` / `/auth/mfa/recove
 
 | Method | Path | Role | Notes |
 |---|---|---|---|
-| POST | `/malware/analyze` | analyst+ | static analysis: hashes, entropy, PE, strings, archives, macros |
+| POST | `/malware/analyze` | analyst+ | multipart `file` upload (any size, streamed) — static analysis: hashes, entropy, PE, strings, archives, macros |
 | GET | `/malware/samples` | analyst+ | prior analysis records (hash-only evidence; bytes not retained) |
 
 ## WebSocket

@@ -35,6 +35,12 @@ MIN_ALERT_CONFIDENCE = 60
 _HIGH_CONFIDENCE = 80
 _COLUMNS = {c.name for c in Indicator.__table__.columns}
 
+# The bundled demo bundle (sample-threat-feed.json, x_source="sample-fixture")
+# was retired: the platform ships with ZERO indicators and operators import
+# their own real STIX 2.1 feeds. Any rows a previous install imported from it
+# are purged on feed load so old databases no longer display sample data.
+RETIRED_SAMPLE_SOURCES = ("sample-fixture",)
+
 
 def _now() -> datetime:
     return datetime.now(timezone.utc).replace(tzinfo=None)
@@ -88,12 +94,24 @@ class IntelEngine:
         return {"imported": imported, "duplicates": deduped, "deduplicated": deduped, "parsed": len(indicators)}
 
     def load_feeds(self, db: Session, directory: Path | None = None) -> dict:
-        """Import every *.json STIX bundle in the feeds directory. Idempotent by (type, value)."""
+        """Import every *.json STIX bundle in the feeds directory. Idempotent by (type, value).
+
+        Also purges indicators imported from retired sample/fixture sources, so a
+        database that previously loaded the demo bundle no longer shows sample data.
+        """
         directory = directory or feeds_dir()
-        loaded = skipped = 0
+        loaded = skipped = purged = 0
         sources: list[dict] = []
+        retired = db.execute(
+            select(Indicator).where(Indicator.source.in_(RETIRED_SAMPLE_SOURCES))
+        ).scalars().all()
+        if retired:
+            for row in retired:
+                db.delete(row)
+            db.commit()
+            purged = len(retired)
         if not directory.is_dir():
-            self.last_import_stats = {"files": 0, "imported": 0, "skipped": 0, "sources": []}
+            self.last_import_stats = {"files": 0, "imported": 0, "skipped": 0, "purged": purged, "sources": []}
             return self.last_import_stats
         for path in sorted(directory.glob("*.json")):
             loaded += 1
@@ -110,6 +128,7 @@ class IntelEngine:
         stats = {
             "files": loaded,
             "skipped": skipped,
+            "purged": purged,
             "sources": sources,
             "at": _now().isoformat(),
             "total_imported": sum(s.get("imported", 0) for s in sources),

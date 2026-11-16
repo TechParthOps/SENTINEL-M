@@ -1,17 +1,21 @@
 """Multimodal analysis orchestrator (Phase 3).
 
-Routes submitted bytes to the right pipeline by magic signature. Bytes are analyzed in
-memory and NEVER retained (ADR-011) — only the analysis record (hashes + result) is stored.
+Routes submitted files to the right pipeline by magic signature. Files are
+analyzed by STREAMING from disk (path-based pipelines, fixed-size reads) and
+NEVER retained (ADR-011) — only the analysis record (hashes + result) is stored.
+There is deliberately NO file-size cap: every pipeline reads bounded chunks.
 
 Honest scope of this build:
   images  — metadata/EXIF, generative-AI tool strings, QR payloads, recompression probe
   audio   — WAV/PCM statistics only (MP3/OGG unsupported → reported as such)
-  video   — OpenCV-decodable containers; Haar face-region statistics (no neural detectors)
+  video   — OpenCV-decodable containers; frame statistics (no neural detectors)
   document— PDF structural scan + OOXML zip inspection (no OCR)
 """
 from __future__ import annotations
 
 import hashlib
+import os
+import tempfile
 import uuid
 from datetime import datetime
 
@@ -28,44 +32,64 @@ DOCUMENT_MAGICS = [(b"%PDF-", "pdf"), (b"PK\x03\x04", "ooxml")]
 AUDIO_MAGICS = [(b"RIFF", "wav"), (b"ID3", "mp3"), (b"OggS", "ogg")]
 VIDEO_MAGICS = [(b"ftyp", "mp4"), (b"\x1a\x45\xdf\xa3", "mkv"), (b"RIFF", "avi")]
 
+_HASH_CHUNK = 1024 * 1024
 
-def detect_kind(data: bytes) -> str:
+
+def detect_kind_head(head: bytes) -> str:
+    """Classify by the first bytes of a file."""
     for magic, _kind in IMAGE_MAGICS:
-        if data.startswith(magic):
+        if head.startswith(magic):
             return "image"
     for magic, kind in DOCUMENT_MAGICS:
-        if data.startswith(magic):
+        if head.startswith(magic):
             return "document"
     for magic, _ in AUDIO_MAGICS:
-        if data.startswith(magic):
+        if head.startswith(magic):
             return "audio"
-    if data[4:8] == b"ftyp" or data.startswith(VIDEO_MAGICS[1][0]):
+    if head[4:8] == b"ftyp" or head.startswith(VIDEO_MAGICS[1][0]):
         return "video"
-    if data.startswith(b"RIFF") and data[8:12] == b"AVI ":
+    if head.startswith(b"RIFF") and head[8:12] == b"AVI ":
         return "video"
     return "unknown"
+
+
+def detect_kind(data: bytes) -> str:
+    """Compatibility wrapper for in-memory buffers."""
+    return detect_kind_head(data[:16])
 
 
 VERDICTS = {"clean": "clean", "indicators_only": "indicators_only", "high_risk": "high_risk",
             "unsupported": "unsupported"}
 
 
+def _hash_file(path: str) -> tuple[str, str]:
+    sha256, md5 = hashlib.sha256(), hashlib.md5()
+    with open(path, "rb") as fh:
+        while True:
+            chunk = fh.read(_HASH_CHUNK)
+            if not chunk:
+                break
+            sha256.update(chunk)
+            md5.update(chunk)
+    return sha256.hexdigest(), md5.hexdigest()
+
+
 class MultimodalEngine:
-    def analyze(self, data: bytes, filename: str = "") -> dict:
-        kind = detect_kind(data)
-        base = {
-            "size": len(data),
-            "sha256": hashlib.sha256(data).hexdigest(),
-            "md5": hashlib.md5(data).hexdigest(),
-        }
+    def analyze_path(self, path: str, filename: str = "") -> dict:
+        """Analyze any file on disk with bounded memory (streaming reads)."""
+        with open(path, "rb") as fh:
+            head = fh.read(16)
+        kind = detect_kind_head(head)
+        sha256, md5 = _hash_file(path)
+        base = {"size": os.path.getsize(path), "sha256": sha256, "md5": md5}
         if kind == "image":
-            result = analyze_image(data, filename)
+            result = analyze_image(path, filename)
         elif kind == "audio":
-            result = analyze_audio(data, filename)
+            result = analyze_audio(path, filename)
         elif kind == "video":
-            result = analyze_video(data, filename)
+            result = analyze_video(path, filename)
         elif kind == "document":
-            result = analyze_document(data, filename)
+            result = analyze_document(path, filename)
         else:
             result = {"kind": "unknown", "status": "unsupported",
                       "error": "unrecognized file type — analysis pipeline not available for this format"}
@@ -79,6 +103,20 @@ class MultimodalEngine:
             else "clean"
         )
         return result
+
+    def analyze(self, data: bytes, filename: str = "") -> dict:
+        """Compatibility wrapper: spool an in-memory buffer to disk and stream it."""
+        suffix = os.path.splitext(filename or "media.bin")[1] or ".bin"
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tf:
+            tf.write(data)
+            tmp_path = tf.name
+        try:
+            return self.analyze_path(tmp_path, filename)
+        finally:
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
 
     def save(self, db: Session, result: dict, actor: str) -> MediaAnalysis:
         row = MediaAnalysis(
@@ -121,6 +159,7 @@ class MultimodalEngine:
             "pipelines": ["image", "audio(wav)", "video(opencv-decodable)", "document(pdf/ooxml)"],
             "ocr": "not bundled in this build (no tesseract binary) — reported honestly",
             "byte_retention": False,
+            "max_file_size": "unlimited (streamed analysis)",
         }
 
 

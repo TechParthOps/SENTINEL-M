@@ -10,10 +10,8 @@ from tests.conftest import client  # noqa: F401
 
 
 def _post(client, admin_headers, data: bytes, name: str):
-    import base64
-
     r = client.post("/api/v1/media/analyze", headers=admin_headers,
-                    json={"filename": name, "content_base64": base64.b64encode(data).decode()})
+                    files={"file": (name, data, "application/octet-stream")})
     assert r.status_code == 200, r.text
     return r.json()
 
@@ -138,5 +136,15 @@ def test_analyses_listed(client, admin_headers):
 
 
 def test_media_requires_analyst(client):
-    r = client.post("/api/v1/media/analyze", json={"filename": "x.png", "content_base64": "aGVsbG8="})
+    r = client.post("/api/v1/media/analyze",
+                    files={"file": ("x.png", b"hello", "application/octet-stream")})
     assert r.status_code in (401, 403)
+
+
+def test_large_media_accepted_without_cap(client, admin_headers):
+    # >20 MB: previously rejected by a 20 MB cap — now analyzed without limit
+    big = b"\x89PNG" + b"\x00" * (21 * 1024 * 1024)
+    r = client.post("/api/v1/media/analyze", headers=admin_headers,
+                    files={"file": ("big.png", big, "application/octet-stream")})
+    assert r.status_code == 200, r.text
+    assert r.json()["size"] == len(big)

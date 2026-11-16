@@ -49,3 +49,83 @@ Thumbs.db
 # Editor
 .vscode/
 .idea/
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+credentials/
+config/secrets/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+
+# Node.js
+node_modules/
+dist/
+build/
+coverage/
+.npm/
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+database/backups/
+
+# Logs
+*.log
+logs/
+audit-logs/
+crash-dumps/
+
+# AI models and datasets
+models/*.gguf
+models/*.safetensors
+models/*.bin
+model-cache/
+datasets/private/
+uploads/
+
+# Runtime files
+*.pid
+*.sock
+tmp/
+temp/
+cache/
+runtime/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Test and generated artifacts
+htmlcov/
+test-results/
+playwright-report/
+*.coverage
+
+# Build and installer artifacts
+release/
+artifacts/
+*.msi
+*.exe
+*.iso
