@@ -22,7 +22,6 @@ deception technology, and a live 3D virtual security-operations environment driv
 | 4 | Autonomous investigation agents (deterministic, read-only, evidence-chained) | ✅ Implemented & tested |
 | 5 | Controlled response & deception (allowlist + approval + verification + rollback) | ✅ Implemented & tested |
 | 6 | 3D virtual security-operations office (live-synced to real data, replay, 2D fallback) | ✅ Implemented & tested |
-| 7 | Enterprise readiness: MFA (TOTP), local installer, backup, SBOM, performance smoke | 🟡 Partial (packaging + SSO honestly deferred) |
 
 The authoritative capability matrix lives in
 [`research/THREAT_COVERAGE_MATRIX.md`](research/THREAT_COVERAGE_MATRIX.md) and is rendered
