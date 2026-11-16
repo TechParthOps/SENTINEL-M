@@ -50,27 +50,41 @@ export default function HealthPage() {
       </header>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {Object.entries(health.modules).map(([name, mod]) => (
-          <Card key={name}>
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-sm text-cyan-200">{name}</span>
-              <Badge
-                className={
-                  mod.status === "ok"
-                    ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-200"
-                    : mod.status === "degraded"
-                      ? "border-amber-500/40 bg-amber-500/15 text-amber-200"
-                      : "border-red-500/40 bg-red-500/15 text-red-200"
-                }
-              >
-                {mod.status}
-              </Badge>
-            </div>
-            <pre className="mt-2 overflow-x-auto text-[11px] text-slate-400">
-              {JSON.stringify(Object.fromEntries(Object.entries(mod).filter(([k]) => k !== "status")), null, 1)}
-            </pre>
-          </Card>
-        ))}
+        {Object.entries(health.modules).map(([name, mod]) => {
+          const details = Object.entries(mod).filter(([k]) => k !== "status");
+          return (
+            <Card key={name}>
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-sm text-cyan-200">{name}</span>
+                <Badge
+                  className={
+                    mod.status === "ok"
+                      ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-200"
+                      : mod.status === "degraded"
+                        ? "border-amber-500/40 bg-amber-500/15 text-amber-200"
+                        : "border-red-500/40 bg-red-500/15 text-red-200"
+                  }
+                >
+                  {mod.status}
+                </Badge>
+              </div>
+              <dl className="mt-2 space-y-1">
+                {details.length === 0 ? (
+                  <p className="text-[11px] text-slate-500">no additional details reported</p>
+                ) : (
+                  details.map(([key, value]) => (
+                    <div key={key} className="flex items-baseline justify-between gap-2 text-[11px]">
+                      <dt className="font-mono text-slate-500">{key.replace(/_/g, " ")}</dt>
+                      <dd className="max-w-[60%] truncate text-right text-slate-300" title={String(value)}>
+                        {Array.isArray(value) ? value.join(", ") : String(value)}
+                      </dd>
+                    </div>
+                  ))
+                )}
+              </dl>
+            </Card>
+          );
+        })}
       </div>
 
       {info.secret_key_is_insecure ? (

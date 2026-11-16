@@ -11,14 +11,18 @@
 | 6 - 3D virtual office | ✅ R3F office live-synced to real REST/WS data, replay, 2D fallback (`docs/REPORTS/phase6_report.md`) |
 | 7 - Enterprise readiness (partial) | ✅ MFA/TOTP, local installer, backup tool, SBOM, performance smoke (`docs/REPORTS/phase7_report.md`) |
 
-## Phase 7 - remaining items
+## Phase 7 — remaining items
 
 | Capability | Status | Dependency / next action |
 |---|---|---|
-| Packaged distribution + automated updates | 📋 planned | PyInstaller/Electron packaging, signed update channel - not in this build |
+| Packaged distribution + automated updates | 📋 planned | PyInstaller/Electron packaging, signed update channel — not in this build |
 | SSO / SAML / LDAP federation | 🚫 blocked | external identity provider |
 | Ticketing / chatops response integrations | 🚫 blocked | external workflow provider |
 | WebAuthn / FIDO2 hardware keys (MFA is TOTP-only today) | 📋 planned | authenticator-attestation flow + attestation verification |
+
+> UI placeholders that used to appear here (Digital Forensics, Integrations, Reports) are
+> now real pages backed by live data — see `docs/IMPLEMENTATION_MATRIX.md`. Raw-JSON
+> displays on System Health and Settings were replaced with readable layouts.
 
 ## Blocked (requires unavailable external components - do NOT fake)
 

@@ -27,7 +27,7 @@ verification, **D** = documented contract (API.md / ARCHITECTURE.md / matrix).
 | C11 | WebSocket streaming | Implemented and tested | T (test_ws), L (live markers arrived < 1s) |
 | C12 | Audit logs (hash-chained) | Implemented and tested | T, L |
 | C13 | System health registry | Implemented and tested | T, L (14 modules ok) |
-| C14 | Integration management | Planned | external IDS/EDR/SOAR connectors need instances |
+| C14 | Integration management | Implemented and tested | Integrations page: live connector/feed/posture view from `/intel/feeds` + `/system/info` + `/coverage` (L); external IDS/EDR/SOAR adapters remain Planned (need instances) |
 | C15 | Local configuration (`SENTINEL_*` env) | Implemented and tested | `app/core/config.py`, `.env.example`, installer L |
 | C16 | Error handling | Implemented and tested | T, L (401/422 paths exercised) |
 
@@ -193,4 +193,6 @@ role enforcement, 3D click-to-inspect, responsive layout: **Implemented and test
 | E5 | SBOM | Implemented and tested | `docs/SBOM.json` (184 components) |
 | E6 | Performance regression guards | Implemented and tested | T ×2 (smoke, not benchmarks) |
 | E7 | Packaged distribution + auto-update channel | Planned | installer app / signed channel out of scope |
+| E9 | Reports generation + export (JSON/CSV) | Implemented and tested | `/reports` page built from live data, L |
+| E10 | System Health / Settings rendering | Implemented and tested | readable key/value rows instead of raw JSON, L |
 | E8 | SSO / SAML / LDAP | Blocked | external identity provider |

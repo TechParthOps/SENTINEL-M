@@ -18,6 +18,10 @@ set "FRONTEND=%ROOT%\frontend"
 set "PYEXE=%BACKEND%\.venv\Scripts\python.exe"
 if defined SENTINEL_PORT (set "PORT=%SENTINEL_PORT%") else (set "PORT=8942")
 
+rem a second start.bat run would otherwise race the first on the same database:
+rem stop any SENTINEL backend/frontend already running, then start fresh
+powershell -NoProfile -Command "$existing = @(Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*uvicorn*app.main:app*' -or ($_.Name -eq 'node.exe' -and $_.CommandLine -like '*vite*') }); if ($existing.Count -gt 0) { Write-Host '[note] stopping' $existing.Count 'already-running SENTINEL-M server(s)'; $existing | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue } }"
+
 rem ---------------------------------------------------------------- arguments
 set "MODE=start"
 if /i "%~1"=="--update"      set "MODE=update"
@@ -117,17 +121,25 @@ echo.
 echo ============================================================
 echo   SENTINEL-M is starting.
 echo ============================================================
-echo   Open:        http://localhost:5173
+echo   Web app:     http://localhost:5173
 echo   Backend:     http://127.0.0.1:%PORT%  (API base: /api/v1)
 echo.
 echo   FIRST LAUNCH: the web page asks you to create the first
 echo   account (Administrator or Normal user). No password is
 echo   printed anywhere - you choose it yourself.
+echo   LATER LAUNCHES: sign in, or use "Create one" to add a
+echo   Normal user / Analyst account. Sessions last 24 hours.
 echo.
 echo   Keep the "SENTINEL-M Backend" and "SENTINEL-M Frontend"
 echo   windows open while using the platform. This window can be
 echo   closed - the servers keep running.
 echo ============================================================
 echo.
+
+rem auto-open the web app in the default browser (once the dev server is listening)
+echo Waiting for the web server to come up...
+powershell -NoProfile -Command "for ($i=0; $i -lt 40; $i++) { if (Get-NetTCPConnection -LocalPort 5173 -State Listen -ErrorAction SilentlyContinue) { break }; Start-Sleep -Milliseconds 500 }"
+echo Opening http://localhost:5173 in your browser...
+start "" http://localhost:5173
 pause
 exit /b 0

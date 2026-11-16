@@ -227,12 +227,26 @@ export default function SettingsPage() {
 
       <Card title="Platform" subtitle="Local runtime facts (ADR-001: modular monolith)">
         {info ? (
-          <pre className="overflow-x-auto text-xs text-slate-400">{JSON.stringify(info, null, 2)}</pre>
+          <dl className="space-y-2 text-sm">
+            <div className="flex justify-between"><dt className="text-sentinel-muted">Application</dt><dd className="text-slate-200">{String(info.name)}</dd></div>
+            <div className="flex justify-between"><dt className="text-sentinel-muted">Version</dt><dd className="text-cyan-300">{String(info.version)}</dd></div>
+            <div className="flex justify-between"><dt className="text-sentinel-muted">Environment</dt><dd className="text-slate-200">{String(info.environment)}</dd></div>
+            <div className="flex justify-between"><dt className="text-sentinel-muted">Detection rules</dt><dd className="text-slate-200">{String((info.rules as { total: number } | undefined)?.total ?? "?")}</dd></div>
+            <div className="flex justify-between"><dt className="text-sentinel-muted">Healthy modules</dt><dd className="text-slate-200">{(info.modules as string[] | undefined)?.length ?? "?"} registered</dd></div>
+            <div>
+              <dt className="text-sentinel-muted">Registered modules</dt>
+              <dd className="mt-1 flex flex-wrap gap-1">
+                {((info.modules as string[] | undefined) ?? []).map((m) => (
+                  <span key={m} className="rounded border border-sentinel-border px-1.5 py-0.5 font-mono text-[10px] text-slate-300">{m}</span>
+                ))}
+              </dd>
+            </div>
+          </dl>
         ) : (
           <Spinner />
         )}
         <p className="mt-3 text-xs text-sentinel-muted">
-          Configuration uses <code>SENTINEL_*</code> environment variables - see{" "}
+          Configuration uses <code>SENTINEL_*</code> environment variables — see{" "}
           <code>backend/.env.example</code>. No secrets are stored in the browser or in source.
         </p>
       </Card>

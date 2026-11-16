@@ -20,11 +20,13 @@ import IdentityPage from "./pages/IdentityPage";
 import AISecurityPage from "./pages/AISecurityPage";
 import MultimodalPage from "./pages/MultimodalPage";
 import VirtualOfficePage from "./pages/VirtualOfficePage";
+import IntegrationsPage from "./pages/IntegrationsPage";
+import ForensicsPage from "./pages/ForensicsPage";
+import ReportsPage from "./pages/ReportsPage";
 import AgentsPage from "./pages/AgentsPage";
 import HuntPage from "./pages/HuntPage";
 import ResponsePage from "./pages/ResponsePage";
 import DeceptionPage from "./pages/DeceptionPage";
-import PlannedPage from "./pages/PlannedPage";
 
 export default function App() {
   const user = useAuth((s) => s.user);
@@ -61,10 +63,10 @@ export default function App() {
           <Route path="/virtual-office" element={<VirtualOfficePage />} />
           <Route path="/agents" element={<AgentsPage />} />
           <Route path="/deception" element={<DeceptionPage />} />
-          <Route path="/forensics" element={<PlannedPage phase={4} />} />
+          <Route path="/forensics" element={<ForensicsPage />} />
           <Route path="/playbooks" element={<ResponsePage />} />
-          <Route path="/reports" element={<PlannedPage phase={7} />} />
-          <Route path="/integrations" element={<PlannedPage phase={2} />} />
+          <Route path="/reports" element={<ReportsPage />} />
+          <Route path="/integrations" element={<IntegrationsPage />} />
           <Route path="*" element={<Overview />} />
         </Route>
       </Routes>

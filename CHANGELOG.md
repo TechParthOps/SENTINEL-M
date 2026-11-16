@@ -2,7 +2,30 @@
 
 All notable development changes. Format loosely follows Keep a Changelog; versions are phase-gates.
 
-## [Unreleased] — Sign up + sign in, 24-hour sessions, persisted dashboard (2026-11-15)
+## [Unreleased] - Integrations / Forensics / Reports pages, readable health (2026-11-16)
+
+### Added
+- **Integrations page** (`/integrations`): what is actually connected - available
+  connectors (STIX file feeds, ingest API, WebSocket, canary endpoint), the local feed
+  directory and its files, runtime posture, and the planned adapters with the exact
+  external system each one needs. Nothing is listed as available unless it is running.
+- **Digital Forensics page** (`/forensics`): investigation evidence chains with SHA-256
+  verification, plus stored multimodal analysis and malware static-analysis records
+  (hash-only). Replaces the Phase-4 planned placeholder.
+- **Reports page** (`/reports`): security-posture report generated from live data
+  (events, alerts by severity/status, incidents, indicators, top rules, response-action
+  counts) with JSON/CSV export. Replaces the Phase-7 planned placeholder.
+
+### Fixed
+- System Health no longer dumps raw JSON per module - each module renders readable
+  key/value rows (database -> url sqlite, detection -> rules loaded 19, ...).
+- Settings no longer shows platform facts as raw JSON - version, environment, rule
+  count and registered modules render as a proper summary with chips.
+- `start.bat` now stops any already-running SENTINEL-M servers before starting (a second
+  double-click used to race the first on the same database), waits for the dev server to
+  listen, and auto-opens http://localhost:5173 in the browser.
+
+## [Unreleased] - Sign up + sign in, 24-hour sessions, persisted dashboard (2026-11-15)
 
 ### Added
 - The login screen offers **both options**: "Sign in" for existing accounts and
@@ -13,14 +36,14 @@ All notable development changes. Format loosely follows Keep a Changelog; versio
   the operator stays signed in across browser restarts; the session token is kept in
   the browser's local storage and renewed on each sign-in.
 - Detected activity is **persisted server-side** (SQLite), so after sign-out and
-  sign-in the dashboard shows the same events, alerts and incidents — verified live
+  sign-in the dashboard shows the same events, alerts and incidents - verified live
   by re-logging in and reading `/stats/overview` (11 events / 2 alerts / 2 incidents).
 
 ### Fixed
 - **Startup crash on an odd-but-valid database**: `seed_if_empty` raised
   `IntegrityError: UNIQUE constraint failed: assets.hostname` (application failed to
   boot, every API call 500) when the database held the sample inventory with zero
-  users — e.g. after a partially seeded file or a stale-instance race. Seeding is now
+  users - e.g. after a partially seeded file or a stale-instance race. Seeding is now
   idempotent per row and never aborts startup. Reproduced on the exact failing state
   (0 users / 6 assets) and verified to boot cleanly afterwards.
 
@@ -32,7 +55,7 @@ All notable development changes. Format loosely follows Keep a Changelog; versio
 - Backend pytest: **124/124 passed** (adds session-TTL + token-expiry tests).
   Frontend: vitest 7/7, tsc clean, build clean.
 
-## [Unreleased] — Master-prompt audit recovery (2026-11-15)
+## [Unreleased] - Master-prompt audit recovery (2026-11-15)
 
 ### Added
 - 3D office now visualizes **agent task lifecycle**: `agent.task_started`,
@@ -50,7 +73,7 @@ All notable development changes. Format loosely follows Keep a Changelog; versio
   streamed into the office's live marker list over WS.
 - Backend pytest: **122/122 passed**; frontend vitest 7/7; `tsc -b` clean; build clean.
 
-## [Unreleased] — First-launch account creation
+## [Unreleased] - First-launch account creation
 
 ### Changed
 - **No printed credentials.** On a fresh install the platform no longer invents an
@@ -72,7 +95,7 @@ All notable development changes. Format loosely follows Keep a Changelog; versio
 - Backend pytest: **122/122 passed** (adds 5 bootstrap tests).
 - A logged-in session visiting `/login` is redirected to `/overview`.
 
-## [Unreleased] — Developer experience: one-click starter
+## [Unreleased] - Developer experience: one-click starter
 
 ### Added
 - `start.bat` (Windows one-click starter): creates the backend virtual environment,
@@ -86,7 +109,7 @@ All notable development changes. Format loosely follows Keep a Changelog; versio
 - `scripts/auto_update.bat`: companion poller for `--auto-update`; states clearly when
   no git remote is configured and still detects local commits.
 
-## [0.7.0] — Phase 7: Enterprise Readiness (partial) — 2026-11-14
+## [0.7.0] - Phase 7: Enterprise Readiness (partial) - 2026-11-14
 
 ### Added
 - **MFA (TOTP, RFC 6238, stdlib-only)**: `app/core/mfa.py` (secret generation, code

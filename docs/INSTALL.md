@@ -21,7 +21,7 @@ Variants:
 
 | Command | Effect |
 |---|---|
-| `start.bat` | start both servers with live reload |
+| `start.bat` | stop any already-running SENTINEL-M servers, start both with live reload, wait for the web server, then open http://localhost:5173 in your browser |
 | `start.bat --update` | `git pull` the latest code, sync dependencies, then start |
 | `start.bat --auto-update` | also opens an updater window that pulls git every 5 minutes; changed code is picked up automatically by `--reload` / HMR |
 | `start.bat --stop` | stop the servers on the backend/dev ports |
